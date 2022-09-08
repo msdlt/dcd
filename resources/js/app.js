@@ -3,17 +3,36 @@ import Phaser from 'phaser';
 //import RexPlugins from 'phaser3-rex-plugins';
 import BoardPlugin from 'phaser3-rex-plugins/plugins/board-plugin.js';
 
+/*
+space=nothing
+0 = normal square - although may want e.g a border to indicate different countries
+1 = homes
+2 = data collection challenge
+3 = hourglass space
+4 = study coordination centre ... possibly several squares rather than going 'back'? Main centre is start to may need 6
+5 = satellite study coordination centre
+*/
+
+const COLORMAP = [
+    0x333333, 
+    0x4caf50, 
+    0xffA500,
+    0x770000,
+    0x000000, 
+    0xffffff
+ ];
+
 const TILESMAP = [
-  '1111111111',
-  '1        1',
-  '1        1',
-  '1        1',
-  '1        1',
-  '1        1',
-  '1        1',
-  '1        1',
-  '1        1',
-  '1111111111' 
+  '4011  1105',
+  '1  3  2  1',
+  '0  1100  2',
+  '220    130',
+  '  1    1  ',
+  '  0    1  ',
+  '110    002',
+  '3  2101  3',
+  '0  0  1  1',
+  '5211  0215' 
 ];
 
 const Between = Phaser.Math.Between;
@@ -24,7 +43,7 @@ class Demo extends Phaser.Scene {
       })
   }
 
-  preload() { }
+  preload() { }cost
 
   create() {
       var board = new Board(this, TILESMAP);
@@ -44,11 +63,11 @@ class Demo extends Phaser.Scene {
   }
 }
 
-const COLORMAP = [0x087f23, 0x4caf50];
+
 class Board extends RexPlugins.Board.Board {
   constructor(scene, tilesMap) {
       var tiles = createTileMap(TILESMAP);
-      // create board
+      // create boardcost
       var config = {
           // grid: getHexagonGrid(scene),
           grid: getQuadGrid(scene),
@@ -71,10 +90,13 @@ class Board extends RexPlugins.Board.Board {
                   continue;
               }
 
-              cost = parseFloat(symbol);
-              this.scene.rexBoard.add.shape(this, tileX, tileY, 0, COLORMAP[cost])
+              //cost = parseFloat(symbol);
+              const tileType = parseFloat(symbol);
+              //this.scene.rexBoard.add.shape(this, tileX, tileY, 0, COLORMAP[cost])
+              this.scene.rexBoard.add.shape(this, tileX, tileY, 0, COLORMAP[tileType]) //cost for all tiles = 1
                   .setStrokeStyle(1, 0xffffff, 1)
                   .setData('cost', cost);
+                  //.setData('cost', cost);
           }
       }
       return this;
@@ -90,15 +112,17 @@ class ChessA extends RexPlugins.Board.Shape {
       // Shape(board, tileX, tileY, tileZ, fillColor, fillAlpha, addToBoard)
       super(board, tileXY.x, tileXY.y, 1, 0x3f51b5);
       scene.add.existing(this);
-      this.setScale(0.9);
+      //this.setScale(1);
 
       // add behaviors        
       this.monopoly = scene.rexBoard.add.monopoly(this, {
           face: 0,
           pathTileZ: 0,
           costCallback: function (curTileXY, preTileXY, monopoly) {
-              var board = monopoly.board;
-              return board.tileXYZToChess(curTileXY.x, curTileXY.y, 0).getData('cost');
+              //cost fror all tiles = 1
+              return 1;
+              //var board = monopoly.board;
+              //return board.tileXYZToChess(curTileXY.x, curTileXY.y, 0).getData('cost');
           },
       });
       this.moveTo = scene.rexBoard.add.moveTo(this);
@@ -162,19 +186,6 @@ var getQuadGrid = function (scene) {
   });
   return grid;
 }
-
-var getHexagonGrid = function (scene) {
-  var staggeraxis = 'x';
-  var staggerindex = 'odd';
-  var grid = scene.rexBoard.add.hexagonGrid({
-      x: 100,
-      y: 100,
-      size: 40,
-      staggeraxis: staggeraxis,
-      staggerindex: staggerindex
-  })
-  return grid;
-};
 
 var createTileMap = function (tilesMap, out) {
   if (out === undefined) {
