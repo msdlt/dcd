@@ -43,20 +43,61 @@ class Demo extends Phaser.Scene {
       })
   }
 
-  preload() { }cost
+  preload() { 
+    
+    this.load.spritesheet('man_dark', 
+        'assets/images/man_dark.png',
+        { frameWidth: 32, frameHeight: 32 }
+    );
+    
+    }
 
   create() {
-      var board = new Board(this, TILESMAP);
-      var chessA = new ChessA(board, {
+    
+    var board = new Board(this, TILESMAP);
+      /*var chessA = new ChessA(board, {
           x: 0,
           y: 0
-      });
+      });*/
+
+    var player = new Player(board, 'man_dark');
+
+    this.anims.create({
+        key: 'up',
+        frames: this.anims.generateFrameNumbers('man_dark', {start: 0, end: 1}),
+        frameRate: 10,
+        repeat: -1
+    });
+
+    this.anims.create({
+        key: 'down',
+        frames: this.anims.generateFrameNumbers('man_dark', {start: 2, end: 3}),
+        frameRate: 10,
+        repeat: -1
+    });
+
+    this.anims.create({
+        key: 'left',
+        frames: this.anims.generateFrameNumbers('man_dark', {start: 4, end: 5}),
+        frameRate: 10,
+        repeat: -1
+    });
+
+    this.anims.create({
+        key: 'right',
+        frames: this.anims.generateFrameNumbers('man_dark', {start: 6, end: 7}),
+        frameRate: 10,
+        repeat: -1
+    });
+
+    //board.addChess(player,0,0,2,true);
 
       var movingPointsTxt = this.add.text(10, 10, '');
       this.input.on('pointerdown', function (pointer) {
           var movingPoints = Between(1, 6);
           movingPointsTxt.setText(movingPoints)
-          chessA.moveForward(movingPoints);
+          player.moveForward(movingPoints);
+          console.log(player);
       });
 
       this.add.text(10, 700, 'Click to move forward.')
@@ -103,7 +144,100 @@ class Board extends RexPlugins.Board.Board {
   }
 }
 
-class ChessA extends RexPlugins.Board.Shape {
+class Player extends Phaser.GameObjects.Sprite {
+    constructor(board, texture) {
+        var scene = board.scene;
+        //if (tileXY === undefined) {
+        //var tileXY = board.getRandomEmptyTileXY(0);
+        //}
+        super(scene, 0,0, texture, 0);
+        scene.add.existing(this);
+
+        board.addChess(this,0,0,2,true);
+
+        // add behaviors        
+        this.monopoly = scene.rexBoard.add.monopoly(this, {
+            face: 0,
+            pathTileZ: 0,
+            costCallback: function (curTileXY, preTileXY, monopoly) {
+                //cost fror all tiles = 1
+                return 1;
+                //var board = monopoly.board;
+                //return board.tileXYZToChess(curTileXY.x, curTileXY.y, 0).getData('cost');
+            },
+        });
+        
+        this.moveTo = scene.rexBoard.add.moveTo(this);
+
+        // private members
+        //this.movingPathTiles = [];
+        
+    }
+    /*showMovingPath(tileXYArray) {
+        this.hideMovingPath();
+        var tileXY, worldXY;
+        var scene = this.scene,
+            board = this.rexChess.board;
+        for (var i = 0, cnt = tileXYArray.length; i < cnt; i++) {
+            tileXY = tileXYArray[i];
+            worldXY = board.tileXYToWorldXY(tileXY.x, tileXY.y, true);
+            this.movingPathTiles.push(scene.add.circle(worldXY.x, worldXY.y, 10, 0xb0003a));
+        }
+    }*/
+  
+    /*hideMovingPath() {
+        for (var i = 0, cnt = this.movingPathTiles.length; i < cnt; i++) {
+            this.movingPathTiles[i].destroy();
+        }
+        this.movingPathTiles.length = 0;
+        return this;
+    }*/
+  
+    moveForward(movingPoints) {
+        if (this.moveTo.isRunning) {
+            return this;
+        }
+  
+        var path = this.monopoly.getPath(movingPoints);
+        //this.showMovingPath(path);
+        this.moveAlongPath(path);
+        return this;
+    }
+    moveAlongPath(path) {
+        if (path.length === 0) {
+            return;
+        }
+  
+        this.moveTo.once('complete', function () {
+            this.moveAlongPath(path);
+        }, this);
+        var tileData = path.shift();
+        this.moveTo.moveTo(tileData);
+        this.monopoly.setFace(this.moveTo.destinationDirection);
+        
+        switch (this.moveTo.destinationDirection) {
+            case 0: 
+                this.anims.play('right');
+                break;
+            case 1: 
+                this.anims.play('down');
+                break;
+            case 2: 
+                this.anims.play('left');
+                break;
+            case 3: 
+                this.anims.play('up');
+                break;
+            default:
+        }
+        
+        //this.setFrame(this.moveTo.destinationDirection);
+                
+        return this;
+    }
+}
+
+/*class ChessA extends RexPlugins.Board.Shape {
   constructor(board, tileXY) {
       var scene = board.scene;
       if (tileXY === undefined) {
@@ -174,7 +308,7 @@ class ChessA extends RexPlugins.Board.Shape {
       this.monopoly.setFace(this.moveTo.destinationDirection);
       return this;
   }
-}
+}*/
 
 var getQuadGrid = function (scene) {
   var grid = scene.rexBoard.add.quadGrid({
@@ -197,6 +331,15 @@ var createTileMap = function (tilesMap, out) {
   return out;
 }
 
+function preload ()
+{
+    
+    this.load.image('ground', 'assets/platform.png');
+    this.load.image('star', 'assets/star.png');
+    this.load.image('bomb', 'assets/bomb.png');
+    
+}
+
 var config = {
   type: Phaser.AUTO,
   parent: 'phaser-example',
@@ -214,6 +357,7 @@ var config = {
           mapping: 'rexBoard'
       }]
   }
+  
 };
 
 var game = new Phaser.Game(config);
