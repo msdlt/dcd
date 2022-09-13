@@ -35,6 +35,8 @@ const TILESMAP = [
   '5211  0215' 
 ];
 
+const spriteRestFrameNo = 3;
+
 const Between = Phaser.Math.Between;
 class Demo extends Phaser.Scene {
   constructor() {
@@ -45,6 +47,15 @@ class Demo extends Phaser.Scene {
 
   preload() { 
     
+    this.load.image('challenge', 
+        'assets/images/exclaim.png'
+    );
+    this.load.image('hourglass', 
+        'assets/images/hourglass.png'
+    );
+    this.load.image('house', 
+        'assets/images/house.png'
+    );
     this.load.spritesheet('man_dark', 
         'assets/images/man_dark.png',
         { frameWidth: 32, frameHeight: 32 }
@@ -62,45 +73,14 @@ class Demo extends Phaser.Scene {
 
     var player = new Player(board, 'man_dark');
 
-    this.anims.create({
-        key: 'up',
-        frames: this.anims.generateFrameNumbers('man_dark', {start: 0, end: 1}),
-        frameRate: 10,
-        repeat: -1
+    var movingPointsTxt = this.add.text(10, 10, '');
+    this.input.on('pointerdown', function (pointer) {
+        var movingPoints = Between(1, 6);
+        movingPointsTxt.setText(movingPoints)
+        player.moveForward(movingPoints);
     });
 
-    this.anims.create({
-        key: 'down',
-        frames: this.anims.generateFrameNumbers('man_dark', {start: 2, end: 3}),
-        frameRate: 10,
-        repeat: -1
-    });
-
-    this.anims.create({
-        key: 'left',
-        frames: this.anims.generateFrameNumbers('man_dark', {start: 4, end: 5}),
-        frameRate: 10,
-        repeat: -1
-    });
-
-    this.anims.create({
-        key: 'right',
-        frames: this.anims.generateFrameNumbers('man_dark', {start: 6, end: 7}),
-        frameRate: 10,
-        repeat: -1
-    });
-
-    //board.addChess(player,0,0,2,true);
-
-      var movingPointsTxt = this.add.text(10, 10, '');
-      this.input.on('pointerdown', function (pointer) {
-          var movingPoints = Between(1, 6);
-          movingPointsTxt.setText(movingPoints)
-          player.moveForward(movingPoints);
-          console.log(player);
-      });
-
-      this.add.text(10, 700, 'Click to move forward.')
+    this.add.text(10, 700, 'Click to move forward.')
   }
 }
 
@@ -123,6 +103,7 @@ class Board extends RexPlugins.Board.Board {
   createPath(tiles) {
       // tiles : 2d array
       var line, symbol, cost;
+      var challenge, house, hourglass;
       for (var tileY = 0, ycnt = tiles.length; tileY < ycnt; tileY++) {
           line = tiles[tileY];
           for (var tileX = 0, xcnt = line.length; tileX < xcnt; tileX++) {
@@ -138,6 +119,36 @@ class Board extends RexPlugins.Board.Board {
                   .setStrokeStyle(1, 0xffffff, 1)
                   .setData('cost', cost);
                   //.setData('cost', cost);
+
+                  /*1 = homes
+                  2 = data collection challenge
+                  3 = hourglass space
+                  4 = study coordination centre ... possibly several squares rather than going 'back'? Main centre is start to may need 6
+                  5 = satellite study coordination centre*/
+              
+              
+            switch(tileType) {
+                case 1:
+                    house = new Phaser.GameObjects.Image(this.scene, 80, 80, 'house');
+                    this.scene.add.existing(house);
+                    this.addChess(house, tileX, tileY);
+                    break; 
+                case 2:
+                    challenge = new Phaser.GameObjects.Image(this.scene, 80, 80, 'challenge');
+                    this.scene.add.existing(challenge);
+                    this.addChess(challenge, tileX, tileY);
+                    break; 
+                case 3:
+                    hourglass = new Phaser.GameObjects.Image(this.scene, 80, 80, 'hourglass');
+                    this.scene.add.existing(hourglass);
+                    this.addChess(hourglass, tileX, tileY);
+                    break;
+                case 4:
+                    break; 
+                case 5:
+                    break; 
+            }
+              
           }
       }
       return this;
@@ -147,11 +158,42 @@ class Board extends RexPlugins.Board.Board {
 class Player extends Phaser.GameObjects.Sprite {
     constructor(board, texture) {
         var scene = board.scene;
-        //if (tileXY === undefined) {
-        //var tileXY = board.getRandomEmptyTileXY(0);
-        //}
-        super(scene, 0,0, texture, 0);
+        super(scene, 0,0, texture, spriteRestFrameNo); //add this sprite to the scene
         scene.add.existing(this);
+
+        scene.anims.create({
+            key: 'up',
+            frames: this.anims.generateFrameNumbers(texture, {start: 0, end: 1}),
+            frameRate: 10,
+            repeat: -1
+        });
+    
+        scene.anims.create({
+            key: 'down',
+            frames: this.anims.generateFrameNumbers(texture, {start: 2, end: 3}),
+            frameRate: 10,
+            repeat: -1
+        });
+    
+        scene.anims.create({
+            key: 'left',
+            frames: this.anims.generateFrameNumbers(texture, {start: 4, end: 5}),
+            frameRate: 10,
+            repeat: -1
+        });
+    
+        scene.anims.create({
+            key: 'right',
+            frames: this.anims.generateFrameNumbers(texture, {start: 6, end: 7}),
+            frameRate: 10,
+            repeat: -1
+        });
+    
+        scene.anims.create({
+            key: 'wait',
+            frames: [{key: texture, frame: spriteRestFrameNo}],
+            frameRate: 20,
+        });
 
         board.addChess(this,0,0,2,true);
 
@@ -173,26 +215,7 @@ class Player extends Phaser.GameObjects.Sprite {
         //this.movingPathTiles = [];
         
     }
-    /*showMovingPath(tileXYArray) {
-        this.hideMovingPath();
-        var tileXY, worldXY;
-        var scene = this.scene,
-            board = this.rexChess.board;
-        for (var i = 0, cnt = tileXYArray.length; i < cnt; i++) {
-            tileXY = tileXYArray[i];
-            worldXY = board.tileXYToWorldXY(tileXY.x, tileXY.y, true);
-            this.movingPathTiles.push(scene.add.circle(worldXY.x, worldXY.y, 10, 0xb0003a));
-        }
-    }*/
-  
-    /*hideMovingPath() {
-        for (var i = 0, cnt = this.movingPathTiles.length; i < cnt; i++) {
-            this.movingPathTiles[i].destroy();
-        }
-        this.movingPathTiles.length = 0;
-        return this;
-    }*/
-  
+      
     moveForward(movingPoints) {
         if (this.moveTo.isRunning) {
             return this;
@@ -204,7 +227,9 @@ class Player extends Phaser.GameObjects.Sprite {
         return this;
     }
     moveAlongPath(path) {
+        //path is array of tiles - first one is removed every time this is called.
         if (path.length === 0) {
+            this.anims.play('wait');
             return;
         }
   
@@ -230,85 +255,10 @@ class Player extends Phaser.GameObjects.Sprite {
                 break;
             default:
         }
-        
-        //this.setFrame(this.moveTo.destinationDirection);
                 
         return this;
     }
 }
-
-/*class ChessA extends RexPlugins.Board.Shape {
-  constructor(board, tileXY) {
-      var scene = board.scene;
-      if (tileXY === undefined) {
-          tileXY = board.getRandomEmptyTileXY(0);
-      }
-      // Shape(board, tileX, tileY, tileZ, fillColor, fillAlpha, addToBoard)
-      super(board, tileXY.x, tileXY.y, 1, 0x3f51b5);
-      scene.add.existing(this);
-      //this.setScale(1);
-
-      // add behaviors        
-      this.monopoly = scene.rexBoard.add.monopoly(this, {
-          face: 0,
-          pathTileZ: 0,
-          costCallback: function (curTileXY, preTileXY, monopoly) {
-              //cost fror all tiles = 1
-              return 1;
-              //var board = monopoly.board;
-              //return board.tileXYZToChess(curTileXY.x, curTileXY.y, 0).getData('cost');
-          },
-      });
-      this.moveTo = scene.rexBoard.add.moveTo(this);
-
-      // private members
-      this.movingPathTiles = [];
-  }
-
-  showMovingPath(tileXYArray) {
-      this.hideMovingPath();
-      var tileXY, worldXY;
-      var scene = this.scene,
-          board = this.rexChess.board;
-      for (var i = 0, cnt = tileXYArray.length; i < cnt; i++) {
-          tileXY = tileXYArray[i];
-          worldXY = board.tileXYToWorldXY(tileXY.x, tileXY.y, true);
-          this.movingPathTiles.push(scene.add.circle(worldXY.x, worldXY.y, 10, 0xb0003a));
-      }
-  }
-
-  hideMovingPath() {
-      for (var i = 0, cnt = this.movingPathTiles.length; i < cnt; i++) {
-          this.movingPathTiles[i].destroy();
-      }
-      this.movingPathTiles.length = 0;
-      return this;
-  }
-
-  moveForward(movingPoints) {
-      if (this.moveTo.isRunning) {
-          return this;
-      }
-
-      var path = this.monopoly.getPath(movingPoints);
-      this.showMovingPath(path);
-      this.moveAlongPath(path);
-      return this;
-  }
-  moveAlongPath(path) {
-      if (path.length === 0) {
-          return;
-      }
-
-      this.moveTo.once('complete', function () {
-          this.moveAlongPath(path);
-      }, this);
-      var tileData = path.shift();
-      this.moveTo.moveTo(tileData);
-      this.monopoly.setFace(this.moveTo.destinationDirection);
-      return this;
-  }
-}*/
 
 var getQuadGrid = function (scene) {
   var grid = scene.rexBoard.add.quadGrid({
@@ -329,15 +279,6 @@ var createTileMap = function (tilesMap, out) {
       out.push(tilesMap[i].split(''));
   }
   return out;
-}
-
-function preload ()
-{
-    
-    this.load.image('ground', 'assets/platform.png');
-    this.load.image('star', 'assets/star.png');
-    this.load.image('bomb', 'assets/bomb.png');
-    
 }
 
 var config = {
