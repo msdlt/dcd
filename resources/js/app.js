@@ -2,6 +2,7 @@
 import Phaser from 'phaser';
 //import RexPlugins from 'phaser3-rex-plugins';
 import BoardPlugin from 'phaser3-rex-plugins/plugins/board-plugin.js';
+import Dice from './dice.js';
 
 /*
 space=nothing
@@ -35,7 +36,12 @@ const TILESMAP = [
   '5211  0215' 
 ];
 
-const spriteRestFrameNo = 3;
+const SPRITE_REST_FRAME_NO = 3;
+
+//initial values
+const INIT_NO_RECRUITMENTS = 0;
+const INIT_NO_COINS = 5;
+const INIT_NO_KITS = 5;
 
 const Between = Phaser.Math.Between;
 class Demo extends Phaser.Scene {
@@ -47,6 +53,7 @@ class Demo extends Phaser.Scene {
 
   preload() { 
     
+    //images for board squares
     this.load.image('challenge', 
         'assets/images/exclaim.png'
     );
@@ -56,31 +63,72 @@ class Demo extends Phaser.Scene {
     this.load.image('house', 
         'assets/images/house.png'
     );
+    this.load.image('coordcentre', 
+        'assets/images/blackbuilding.png'
+    );
+    this.load.image('startcentre', 
+        'assets/images/whitebuilding.png'
+    );
+
+    //image for player
     this.load.spritesheet('man_dark', 
         'assets/images/man_dark.png',
         { frameWidth: 32, frameHeight: 32 }
     );
+
+    //images for scoring
+    this.load.image('coin-white', 
+        'assets/images/coin-white.png'
+    );
+    this.load.image('syringe-white', 
+        'assets/images/syringe-white.png'
+    );
+    this.load.image('person-white', 
+        'assets/images/person-white.png'
+    );
+
+    //images for dice
+    this.load.spritesheet('dice-faces', 
+        'assets/images/die-white.png',
+        { frameWidth: 45, frameHeight: 45 }
+    );
+    
     
     }
 
   create() {
     
+    var instructions = 'Click to move forward';
+    
+    
     var board = new Board(this, TILESMAP);
-      /*var chessA = new ChessA(board, {
-          x: 0,
-          y: 0
-      });*/
+   
+    player = new Player(board, 'man_dark');
 
-    var player = new Player(board, 'man_dark');
+    var dice = new Dice(this, 720, 60, 'dice-faces', 5, onDiceRolled).setOrigin(0, 0);;
 
-    var movingPointsTxt = this.add.text(10, 10, '');
+    var coinImage = this.add.image(720, 600, 'coin-white').setOrigin(0, 0);
+    var kitImage = this.add.image(780, 600, 'syringe-white').setOrigin(0, 0);
+    var recruitmentImage = this.add.image(840, 600, 'person-white').setOrigin(0, 0);
+
+    var coinText = this.add.text(730, 660, player.noOfCoins, { fontSize: '32px'});
+    var kitText = this.add.text(790, 660, player.noOfKits, { fontSize: '32px'});
+    var recruitmentText = this.add.text(850, 660, player.noOfRecruitments, { fontSize: '32px'});
+
+    //scoring and instructions
+    var instuctionsText = this.add.text(10, 700, instructions);
+    var movingPointsText = this.add.text(10, 10, '');
+    
     this.input.on('pointerdown', function (pointer) {
-        var movingPoints = Between(1, 6);
-        movingPointsTxt.setText(movingPoints)
-        player.moveForward(movingPoints);
+        dice.roll();
+        //var movingPoints = Between(1, 6);
+        //movingPointsText.setText(movingPoints)
+        
     });
 
-    this.add.text(10, 700, 'Click to move forward.')
+    
+
+
   }
 }
 
@@ -103,7 +151,7 @@ class Board extends RexPlugins.Board.Board {
   createPath(tiles) {
       // tiles : 2d array
       var line, symbol, cost;
-      var challenge, house, hourglass;
+      var challenge, house, hourglass, startcentre, coordcentre;
       for (var tileY = 0, ycnt = tiles.length; tileY < ycnt; tileY++) {
           line = tiles[tileY];
           for (var tileX = 0, xcnt = line.length; tileX < xcnt; tileX++) {
@@ -117,7 +165,7 @@ class Board extends RexPlugins.Board.Board {
               //this.scene.rexBoard.add.shape(this, tileX, tileY, 0, COLORMAP[cost])
               this.scene.rexBoard.add.shape(this, tileX, tileY, 0, COLORMAP[tileType]) //cost for all tiles = 1
                   .setStrokeStyle(1, 0xffffff, 1)
-                  .setData('cost', cost);
+                  .setData('tileType', tileType);
                   //.setData('cost', cost);
 
                   /*1 = homes
@@ -126,27 +174,36 @@ class Board extends RexPlugins.Board.Board {
                   4 = study coordination centre ... possibly several squares rather than going 'back'? Main centre is start to may need 6
                   5 = satellite study coordination centre*/
               
-              
+            //add tile decorators at tileZ = 1
+            var tileZ = 1;
+                  
             switch(tileType) {
                 case 1:
                     house = new Phaser.GameObjects.Image(this.scene, 80, 80, 'house');
                     this.scene.add.existing(house);
-                    this.addChess(house, tileX, tileY);
+                    this.addChess(house, tileX, tileY, tileZ);
                     break; 
                 case 2:
                     challenge = new Phaser.GameObjects.Image(this.scene, 80, 80, 'challenge');
                     this.scene.add.existing(challenge);
-                    this.addChess(challenge, tileX, tileY);
+                    this.addChess(challenge, tileX, tileY, tileZ);
                     break; 
                 case 3:
                     hourglass = new Phaser.GameObjects.Image(this.scene, 80, 80, 'hourglass');
                     this.scene.add.existing(hourglass);
-                    this.addChess(hourglass, tileX, tileY);
+                    this.addChess(hourglass, tileX, tileY, tileZ);
                     break;
                 case 4:
-                    break; 
+                    startcentre = new Phaser.GameObjects.Image(this.scene, 80, 80, 'startcentre');
+                    this.scene.add.existing(startcentre);
+                    this.addChess(startcentre, tileX, tileY, tileZ);
+                    break; get
                 case 5:
+                    coordcentre = new Phaser.GameObjects.Image(this.scene, 80, 80, 'coordcentre');
+                    this.scene.add.existing(coordcentre);
+                    this.addChess(coordcentre, tileX, tileY, tileZ);
                     break; 
+
             }
               
           }
@@ -158,7 +215,18 @@ class Board extends RexPlugins.Board.Board {
 class Player extends Phaser.GameObjects.Sprite {
     constructor(board, texture) {
         var scene = board.scene;
-        super(scene, 0,0, texture, spriteRestFrameNo); //add this sprite to the scene
+
+        super(scene, 0,0, texture, SPRITE_REST_FRAME_NO); //add this sprite to the scene
+
+        //player-level scores
+        this.noOfRecruitments = INIT_NO_RECRUITMENTS;
+        this.noOfCoins = INIT_NO_COINS;
+        this.noOfKits = INIT_NO_KITS;
+
+        //player-level variables
+        this.turnsToMiss = 0; //iea is that this will be checked and decremented each turn.
+        this.turnsToGetToStudyCentre = 0; //idea is that this will be set to e.g. 3 then, each turn, checked and decremented each turn if, when set to 1, player does not reach study centre, one card is lost and this is set to 0 (ignored in future turns)
+
         scene.add.existing(this);
 
         scene.anims.create({
@@ -191,7 +259,7 @@ class Player extends Phaser.GameObjects.Sprite {
     
         scene.anims.create({
             key: 'wait',
-            frames: [{key: texture, frame: spriteRestFrameNo}],
+            frames: [{key: texture, frame: SPRITE_REST_FRAME_NO}],
             frameRate: 20,
         });
 
@@ -238,6 +306,8 @@ class Player extends Phaser.GameObjects.Sprite {
         }, this);
         var tileData = path.shift();
         this.moveTo.moveTo(tileData);
+        console.log(tileData);
+        console.log(this.monopoly.board.tileXYZToChess(tileData.x, tileData.y, 0).getData('tileType'));
         this.monopoly.setFace(this.moveTo.destinationDirection);
         
         switch (this.moveTo.destinationDirection) {
@@ -255,9 +325,13 @@ class Player extends Phaser.GameObjects.Sprite {
                 break;
             default:
         }
-                
-        return this;
     }
+}
+
+var onDiceRolled = function (numberRolled) {
+    player.moveForward(numberRolled);
+
+
 }
 
 var getQuadGrid = function (scene) {
@@ -298,7 +372,12 @@ var config = {
           mapping: 'rexBoard'
       }]
   }
-  
 };
+
+//top-level variables
+var gamevars = {
+    noOfRecruitments:0
+};
+var player;
 
 var game = new Phaser.Game(config);

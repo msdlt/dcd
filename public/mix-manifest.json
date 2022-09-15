@@ -1,14 +1,16 @@
 {
     "/js/app.js": "/js/app.js",
     "/css/app.css": "/css/app.css",
-    "/assets/images/bomb.png": "/assets/images/bomb.png",
-    "/assets/images/dude.png": "/assets/images/dude.png",
-    "/assets/images/man_dark.png": "/assets/images/man_dark.png",
-    "/assets/images/platform.png": "/assets/images/platform.png",
-    "/assets/images/sky.png": "/assets/images/sky.png",
-    "/assets/images/star.png": "/assets/images/star.png",
+    "/assets/images/blackbuilding.png": "/assets/images/blackbuilding.png",
     "/assets/images/challenge.png": "/assets/images/challenge.png",
-    "/assets/images/house.png": "/assets/images/house.png",
+    "/assets/images/coin-white.png": "/assets/images/coin-white.png",
+    "/assets/images/dude.png": "/assets/images/dude.png",
     "/assets/images/exclaim.png": "/assets/images/exclaim.png",
-    "/assets/images/hourglass.png": "/assets/images/hourglass.png"
+    "/assets/images/hourglass.png": "/assets/images/hourglass.png",
+    "/assets/images/house.png": "/assets/images/house.png",
+    "/assets/images/man_dark.png": "/assets/images/man_dark.png",
+    "/assets/images/person-white.png": "/assets/images/person-white.png",
+    "/assets/images/syringe-white.png": "/assets/images/syringe-white.png",
+    "/assets/images/whitebuilding.png": "/assets/images/whitebuilding.png",
+    "/assets/images/die-white.png": "/assets/images/die-white.png"
 }
