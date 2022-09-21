@@ -367,9 +367,13 @@ class Player extends Phaser.GameObjects.Sprite {
 
 var CreateDialog = function (scene, title, prompt, dialogType) {
     var dialog = scene.rexUI.add.dialog({
+        x: 500,
+        y: 400,
+        width: 600,
         background: scene.rexUI.add.roundRectangle(0, 0, 100, 100, 20, 0x1565c0),
 
-        title: scene.rexUI.add.label({
+        title: CreateLabel(scene, title, false),
+        /*,scene.rexUI.add.label({
             background: scene.rexUI.add.roundRectangle(0, 0, 100, 40, 20, 0x003c8f),
             text: scene.add.text(0, 0, title, {
                 fontSize: '24px'
@@ -380,16 +384,26 @@ var CreateDialog = function (scene, title, prompt, dialogType) {
                 top: 10,
                 bottom: 10
             }
-        }),
+        }),*/
 
-        content: scene.add.text(0, 0, prompt, {
+        description: CreateLabel(scene, prompt, true),
+
+        /*content: scene.add.text(0, 0, prompt, {
             fontSize: '24px'
-        }),
+        }),*/
 
         actions: [
-            CreateLabel(scene, 'Yes'),
-            CreateLabel(scene, 'No')
+            CreateLabel(scene, 'Yes', true),
+            CreateLabel(scene, 'No', true)
         ],
+
+        expand: {
+            title: false,
+            // content: false,
+            description: true,
+            // choices: false,
+            // actions: true,
+        },
 
         space: {
             title: 25,
@@ -426,16 +440,22 @@ var CreateDialog = function (scene, title, prompt, dialogType) {
     return dialog;
 }
 
-var CreateLabel = function (scene, text) {
+var CreateLabel = function (scene, text, wrap) {
+    var background = scene.rexUI.add.roundRectangle(0, 0, 100, 40, 20, 0x5e92f3);
+    var textObj = scene.add.text(0, 0, text, {
+        fontSize: '24px'
+    });
+    if (wrap) {
+        textObj = scene.rexUI.wrapExpandText(textObj);
+    }
     return scene.rexUI.add.label({
-        // width: 40,
-        // height: 40,
+        width: 40, // Minimum width of round-rectangle
+        height: 40, // Minimum height of round-rectangle
 
-        background: scene.rexUI.add.roundRectangle(0, 0, 0, 0, 20, 0x5e92f3),
+        background: background,
 
-        text: scene.add.text(0, 0, text, {
-            fontSize: '24px'
-        }),
+        text: textObj,
+        expandTextWidth: wrap,
 
         space: {
             left: 10,
