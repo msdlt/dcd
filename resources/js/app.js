@@ -2,6 +2,7 @@
 import Phaser from 'phaser';
 //import RexPlugins from 'phaser3-rex-plugins';
 import BoardPlugin from 'phaser3-rex-plugins/plugins/board-plugin.js';
+import UIPlugin from 'phaser3-rex-plugins/templates/ui/ui-plugin.js';
 import Dice from './dice.js';
 
 /*
@@ -14,14 +15,41 @@ space=nothing
 5 = satellite study coordination centre
 */
 
-const COLORMAP = [
-    0x333333, 
-    0x4caf50, 
-    0xffA500,
-    0x770000,
-    0x000000, 
+const TILEFILL = [
+    0xffffff, //0x333333, 
+    0xffffff, //0x4caf50, 
+    0xffffff, //0xffA500,
+    0xffffff, //0x770000,
+    0x000000, //0x000000, 
     0xffffff
  ];
+
+const TILESTROKE = [
+    0x000000, //0x333333, 
+    0x000000, //0x4caf50, 
+    0x000000, //0xffA500,
+    0x000000, //0x770000,
+    0xffffff, //0x000000, 
+    0x000000
+];
+
+const TILEDESCRIPTIONS = [
+    'On the road',
+    'House',
+    'Data collection challenge',
+    'Samples expiring',
+    'Start',
+    'Study coordination centre',
+];
+
+const TILEPROMPTS = [
+    'Click OK to let the next person have their turn',
+    'You have arrived at a house. Would you like to sample?',
+    'Data collection can be challenging! Click OK to see your challenge.',
+    'You have three turns to get your samples to a study centre beforre they go off',
+    'Your home centre - collect five coins and five sample kits',
+    'Collect three coins and three sample kits',
+]
 
 const TILESMAP = [
   '4011  1105',
@@ -102,6 +130,8 @@ class Demo extends Phaser.Scene {
     
     
     var board = new Board(this, TILESMAP);
+
+    var dialog = this.rexUI.add.dialog(config);
    
     player = new Player(board, 'man_dark');
 
@@ -119,12 +149,12 @@ class Demo extends Phaser.Scene {
     var instuctionsText = this.add.text(10, 700, instructions);
     var movingPointsText = this.add.text(10, 10, '');
     
-    this.input.on('pointerdown', function (pointer) {
+    /*this.input.on('pointerdown', function (pointer) {
         dice.roll();
         //var movingPoints = Between(1, 6);
         //movingPointsText.setText(movingPoints)
         
-    });
+    });*/
 
     
 
@@ -163,8 +193,9 @@ class Board extends RexPlugins.Board.Board {
               //cost = parseFloat(symbol);
               const tileType = parseFloat(symbol);
               //this.scene.rexBoard.add.shape(this, tileX, tileY, 0, COLORMAP[cost])
-              this.scene.rexBoard.add.shape(this, tileX, tileY, 0, COLORMAP[tileType]) //cost for all tiles = 1
-                  .setStrokeStyle(1, 0xffffff, 1)
+              this.scene.rexBoard.add.shape(this, tileX, tileY, 0, TILEFILL[tileType]) //cost for all tiles = 1
+                  //.setStrokeStyle(1, 0xffffff, 1)
+                  .setStrokeStyle(1, TILESTROKE[tileType], 1)
                   .setData('tileType', tileType);
                   //.setData('cost', cost);
 
@@ -222,6 +253,7 @@ class Player extends Phaser.GameObjects.Sprite {
         this.noOfRecruitments = INIT_NO_RECRUITMENTS;
         this.noOfCoins = INIT_NO_COINS;
         this.noOfKits = INIT_NO_KITS;
+        this.onTileType = 4; //study coordination centre - start
 
         //player-level variables
         this.turnsToMiss = 0; //iea is that this will be checked and decremented each turn.
@@ -284,30 +316,29 @@ class Player extends Phaser.GameObjects.Sprite {
         
     }
       
-    moveForward(movingPoints) {
-        if (this.moveTo.isRunning) {
-            return this;
-        }
-  
+    //callBackOnFinished passed to moveAlongPath
+    moveForward(movingPoints, callbackOnFinished) {
         var path = this.monopoly.getPath(movingPoints);
-        //this.showMovingPath(path);
-        this.moveAlongPath(path);
+        this.moveAlongPath(path,callbackOnFinished);
         return this;
     }
-    moveAlongPath(path) {
+
+    moveAlongPath(path, callbackOnFinished) {
         //path is array of tiles - first one is removed every time this is called.
         if (path.length === 0) {
             this.anims.play('wait');
+            callbackOnFinished(this.scene);
             return;
         }
   
         this.moveTo.once('complete', function () {
-            this.moveAlongPath(path);
+            this.moveAlongPath(path, callbackOnFinished);
         }, this);
         var tileData = path.shift();
         this.moveTo.moveTo(tileData);
-        console.log(tileData);
-        console.log(this.monopoly.board.tileXYZToChess(tileData.x, tileData.y, 0).getData('tileType'));
+        
+        player.onTileType = this.monopoly.board.tileXYZToChess(tileData.x, tileData.y, 0).getData('tileType');
+        console.log(player.onTileType)
         this.monopoly.setFace(this.moveTo.destinationDirection);
         
         switch (this.moveTo.destinationDirection) {
@@ -328,11 +359,126 @@ class Player extends Phaser.GameObjects.Sprite {
     }
 }
 
-var onDiceRolled = function (numberRolled) {
-    player.moveForward(numberRolled);
+/*
+* title
+* prompt
+* dialogType - 0 = roll dice, 1 = draw card, etc.
+*/
 
+var CreateDialog = function (scene, title, prompt, dialogType) {
+    var dialog = scene.rexUI.add.dialog({
+        background: scene.rexUI.add.roundRectangle(0, 0, 100, 100, 20, 0x1565c0),
+
+        title: scene.rexUI.add.label({
+            background: scene.rexUI.add.roundRectangle(0, 0, 100, 40, 20, 0x003c8f),
+            text: scene.add.text(0, 0, title, {
+                fontSize: '24px'
+            }),
+            space: {
+                left: 15,
+                right: 15,
+                top: 10,
+                bottom: 10
+            }
+        }),
+
+        content: scene.add.text(0, 0, prompt, {
+            fontSize: '24px'
+        }),
+
+        actions: [
+            CreateLabel(scene, 'Yes'),
+            CreateLabel(scene, 'No')
+        ],
+
+        space: {
+            title: 25,
+            content: 25,
+            action: 15,
+
+            left: 20,
+            right: 20,
+            top: 20,
+            bottom: 20,
+        },
+
+        align: {
+            actions: 'right', // 'center'|'left'|'right'
+        },
+
+        expand: {
+            content: false,  // Content is a pure text object
+        }
+    })
+        .layout();
+
+    dialog
+        .on('button.click', function (button, groupName, index, pointer, event) {
+            dialog.emit('modal.requestClose', { index: index, text: button.text });
+        })
+        .on('button.over', function (button, groupName, index, pointer, event) {
+            button.getElement('background').setStrokeStyle(1, 0xffffff);
+        })
+        .on('button.out', function (button, groupName, index, pointer, event) {
+            button.getElement('background').setStrokeStyle();
+        });
+
+    return dialog;
+}
+
+var CreateLabel = function (scene, text) {
+    return scene.rexUI.add.label({
+        // width: 40,
+        // height: 40,
+
+        background: scene.rexUI.add.roundRectangle(0, 0, 0, 0, 20, 0x5e92f3),
+
+        text: scene.add.text(0, 0, text, {
+            fontSize: '24px'
+        }),
+
+        space: {
+            left: 10,
+            right: 10,
+            top: 10,
+            bottom: 10
+        }
+    });
+}
+
+
+var onFinishedMoving = function (scene) {
+    
+    console.log('This is me: ' + player.onTileType);
+
+    var dialogTitle = TILEDESCRIPTIONS[player.onTileType];
+    var dialogPrompt = TILEPROMPTS[player.onTileType];
+
+    scene.rexUI.modalPromise(
+        // Game object
+        CreateDialog(scene, dialogTitle, dialogPrompt).setPosition(400, 300),
+        // Config
+        {
+            manaulClose: true,
+            duration: {
+                in: 500,
+                out: 500
+            }
+        }
+    )
+    .then(function (result) {
+        print.text += `Click button ${result.index}: ${result.text}\n`;
+    })
+
+    return;
 
 }
+
+var onDiceRolled = function (scene, numberRolled) {
+    var moved = player.moveForward(numberRolled, onFinishedMoving);
+}
+
+
 
 var getQuadGrid = function (scene) {
   var grid = scene.rexBoard.add.quadGrid({
@@ -370,7 +516,11 @@ var config = {
           key: 'rexBoard',
           plugin: BoardPlugin,
           mapping: 'rexBoard'
-      }]
+      }, {
+        key: 'rexUI',
+        plugin: UIPlugin,
+        mapping: 'rexUI'
+    }]
   }
 };
 

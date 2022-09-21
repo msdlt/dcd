@@ -4,6 +4,9 @@ export default class Dice extends Phaser.GameObjects.Sprite {
     super(scene, x, y, texture, frame);//, 'faces', 5);
 
     this.callback = callback;
+    this.rolling = false;
+
+    this.setInteractive();
 
     scene.add.existing(this);
 
@@ -19,9 +22,16 @@ export default class Dice extends Phaser.GameObjects.Sprite {
       var rolled = this.randomIntFromInterval(1,6); 
       //console.log(rolled);
       this.setFrame(rolled-1);
-      this.callback(rolled);
+      this.callback(scene, rolled);
+      this.rolling = false;
     })
-  
+    
+    this.on('pointerdown', function (pointer) {
+      if(!this.rolling) {
+        this.rolling = true;
+        this.anims.play('roll'); 
+      }
+    });
   }
 
   roll() {
