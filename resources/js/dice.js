@@ -6,6 +6,17 @@ export default class Dice extends Phaser.GameObjects.Sprite {
     this.callback = callback;
     this.rolling = false;
 
+    this.setOrigin(0.5, 0.5); //means tween origin is in cente of die
+
+    this.flashTween = this.flashTween = this.scene.tweens.add({
+      targets: this,
+      scale: 1.1,
+      ease: 'Linear',
+      duration: 200,
+      repeat: -1,
+      yoyo: true,
+    });
+
     this.setInteractive();
 
     scene.add.existing(this);
@@ -28,14 +39,38 @@ export default class Dice extends Phaser.GameObjects.Sprite {
     
     this.on('pointerdown', function (pointer) {
       if(!this.rolling) {
-        this.rolling = true;
-        this.anims.play('roll'); 
+        this.roll();    
       }
     });
   }
 
   roll() {
-    this.anims.play('roll');    
+    this.rolling = true;  
+    if(this.flashTween) { this.flashTween.pause()};    
+    this.anims.play('roll');
+  }
+
+  flash() {
+    //if(this.flashTween) {
+      //if(this.flashTween.isPaused()){
+        this.flashTween.resume(); 
+      //} else {
+      //  this.flashTween.play();    
+      //}
+    //} else {
+    //  this.flashTween = this.scene.tweens.add({
+    //    targets: this,
+    //    scale: 1.1,
+    //    ease: 'Linear',
+    //    duration: 200,
+    //    repeat: -1,
+    //    yoyo: true,
+    //    //to: { x: 0.5, y: 0.5}
+    //  });//.to({ x: 0.5, y: 0.5});
+
+    //}
+    
+    
   }
 
   randomIntFromInterval(min, max) { // min and max included - https://stackoverflow.com/questions/4959975/generate-random-number-between-two-numbers-in-javascript

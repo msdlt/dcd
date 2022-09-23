@@ -33,21 +33,27 @@ const TILESTROKE = [
     0x000000
 ];
 
+const INVENTORY_COLOURS = [
+    0xf80000, //0 left 
+    0xf87c7c, //1 left
+    0xf8baba, //2 left
+];
+
 const TILEDESCRIPTIONS = [
     'On the road',
-    'House',
+    'You have arrived at a house',
     'Data collection challenge',
     'Samples expiring',
-    'Start',
-    'Study coordination centre',
+    'Main study centre',
+    'Satellite stduy centre',
 ];
 
 const TILEPROMPTS = [
     'Click OK to let the next person have their turn',
-    'You have arrived at a house. Would you like to sample?',
+    'Would you like to attempt to recruit by paying one coin? Roll an EVEN number to successfully recruit. An ODD number means no consent.',
     'Data collection can be challenging! Click OK to see your challenge.',
-    'You have three turns to get your samples to a study centre beforre they go off',
-    'Your home centre - collect five coins and five sample kits',
+    'You have three turns to get your samples to a study centre before they become unusable',
+    'Collect five coins and five sample kits',
     'Collect three coins and three sample kits',
 ]
 
@@ -71,7 +77,10 @@ const INIT_NO_RECRUITMENTS = 0;
 const INIT_NO_COINS = 5;
 const INIT_NO_KITS = 5;
 
-const Between = Phaser.Math.Between;
+const DELAY_BEFORE_DIALOG_LOADS = 300; //ms
+
+//const Between = Phaser.Math.Between;
+
 class Demo extends Phaser.Scene {
   constructor() {
       super({
@@ -135,30 +144,17 @@ class Demo extends Phaser.Scene {
    
     player = new Player(board, 'man_dark');
 
-    var dice = new Dice(this, 720, 60, 'dice-faces', 5, onDiceRolled).setOrigin(0, 0);;
+    dice = new Dice(this, 750, 90, 'dice-faces', 5, onDiceRolled);
 
-    var coinImage = this.add.image(720, 600, 'coin-white').setOrigin(0, 0);
-    var kitImage = this.add.image(780, 600, 'syringe-white').setOrigin(0, 0);
-    var recruitmentImage = this.add.image(840, 600, 'person-white').setOrigin(0, 0);
+    coinImage = this.add.image(750, 600, 'coin-white').setOrigin(0.5, 0.5);
+    kitImage = this.add.image(810, 600, 'syringe-white').setOrigin(0.5, 0.5);
+    recruitmentImage = this.add.image(870, 600, 'person-white').setOrigin(0.5, 0.5);
 
-    var coinText = this.add.text(730, 660, player.noOfCoins, { fontSize: '32px'});
-    var kitText = this.add.text(790, 660, player.noOfKits, { fontSize: '32px'});
-    var recruitmentText = this.add.text(850, 660, player.noOfRecruitments, { fontSize: '32px'});
-
-    //scoring and instructions
-    var instuctionsText = this.add.text(10, 700, instructions);
-    var movingPointsText = this.add.text(10, 10, '');
-    
-    /*this.input.on('pointerdown', function (pointer) {
-        dice.roll();
-        //var movingPoints = Between(1, 6);
-        //movingPointsText.setText(movingPoints)
-        
-    });*/
+    coinText = this.add.text(750, 660, player.noOfCoins, { fontSize: '32px'}).setOrigin(0.5, 0.5);
+    kitText = this.add.text(810, 660, player.noOfKits, { fontSize: '32px'}).setOrigin(0.5, 0.5);
+    recruitmentText = this.add.text(870, 660, player.noOfRecruitments, { fontSize: '32px'}).setOrigin(0.5, 0.5);
 
     
-
-
   }
 }
 
@@ -338,7 +334,7 @@ class Player extends Phaser.GameObjects.Sprite {
         this.moveTo.moveTo(tileData);
         
         player.onTileType = this.monopoly.board.tileXYZToChess(tileData.x, tileData.y, 0).getData('tileType');
-        console.log(player.onTileType)
+        //console.log(player.onTileType)
         this.monopoly.setFace(this.moveTo.destinationDirection);
         
         switch (this.moveTo.destinationDirection) {
@@ -362,40 +358,23 @@ class Player extends Phaser.GameObjects.Sprite {
 /*
 * title
 * prompt
-* dialogType - 0 = roll dice, 1 = draw card, etc.
+* dialogButtons = []
 */
 
-var CreateDialog = function (scene, title, prompt, dialogType) {
+var CreateDialog = function (scene, title, prompt, dialogButtons) {
+
     var dialog = scene.rexUI.add.dialog({
         x: 500,
         y: 400,
         width: 600,
         background: scene.rexUI.add.roundRectangle(0, 0, 100, 100, 20, 0x1565c0),
 
-        title: CreateLabel(scene, title, false),
-        /*,scene.rexUI.add.label({
-            background: scene.rexUI.add.roundRectangle(0, 0, 100, 40, 20, 0x003c8f),
-            text: scene.add.text(0, 0, title, {
-                fontSize: '24px'
-            }),
-            space: {
-                left: 15,
-                right: 15,
-                top: 10,
-                bottom: 10
-            }
-        }),*/
+        title: CreateLabel(scene, title, false, 0x003c8f),
+        
+        description: CreateLabel(scene, prompt, true, 0x1565c0),
 
-        description: CreateLabel(scene, prompt, true),
-
-        /*content: scene.add.text(0, 0, prompt, {
-            fontSize: '24px'
-        }),*/
-
-        actions: [
-            CreateLabel(scene, 'Yes', true),
-            CreateLabel(scene, 'No', true)
-        ],
+        
+        actions: [],//will be added later
 
         expand: {
             title: false,
@@ -423,8 +402,16 @@ var CreateDialog = function (scene, title, prompt, dialogType) {
         expand: {
             content: false,  // Content is a pure text object
         }
+    });
+    
+    //dialog.addAction(CreateLabel(scene, 'OK', false)); 
+    
+    dialogButtons.forEach((dialogButton) => {
+        var newLabel = CreateLabel(scene, dialogButton.text, dialogButton.wrap)
+        dialog.addAction(newLabel); 
     })
-        .layout();
+
+    dialog.layout();  //have to call this after addAction to get it to place buttons on dialog
 
     dialog
         .on('button.click', function (button, groupName, index, pointer, event) {
@@ -440,8 +427,14 @@ var CreateDialog = function (scene, title, prompt, dialogType) {
     return dialog;
 }
 
-var CreateLabel = function (scene, text, wrap) {
-    var background = scene.rexUI.add.roundRectangle(0, 0, 100, 40, 20, 0x5e92f3);
+var CreateLabel = function (scene, text, wrap, colour) {
+    var background;
+    if (colour){
+        background = scene.rexUI.add.roundRectangle(0, 0, 100, 40, 20, colour);
+    } else {
+        background = scene.rexUI.add.roundRectangle(0, 0, 100, 40, 20, 0x5e92f3);
+    }
+    //var background = scene.rexUI.add.roundRectangle(0, 0, 100, 40, 20, 0x5e92f3);
     var textObj = scene.add.text(0, 0, text, {
         fontSize: '24px'
     });
@@ -449,8 +442,8 @@ var CreateLabel = function (scene, text, wrap) {
         textObj = scene.rexUI.wrapExpandText(textObj);
     }
     return scene.rexUI.add.label({
-        width: 40, // Minimum width of round-rectangle
-        height: 40, // Minimum height of round-rectangle
+        //width: 60, // Minimum width of round-rectangle
+        //height: 40, // Minimum height of round-rectangle
 
         background: background,
 
@@ -469,33 +462,263 @@ var CreateLabel = function (scene, text, wrap) {
 
 var onFinishedMoving = function (scene) {
     
-    console.log('This is me: ' + player.onTileType);
+    //console.log('This is me: ' + player.onTileType);
 
     var dialogTitle = TILEDESCRIPTIONS[player.onTileType];
     var dialogPrompt = TILEPROMPTS[player.onTileType];
+    var dialogButtons = [];
 
-    scene.rexUI.modalPromise(
-        // Game object
-        CreateDialog(scene, dialogTitle, dialogPrompt).setPosition(400, 300),
-        // Config
-        {
-            manaulClose: true,
-            duration: {
-                in: 500,
-                out: 500
+    switch (player.onTileType) {
+        case 0: 
+            /*dialogButtons = [
+                {
+                    'text':'OK',
+                    'wrap': false
+                }
+            ]*/
+            nextGo();
+            return;
+            break;
+        case 1: 
+            //first check sufficient coins and kits
+            if(player.noOfCoins > 0 && player.noOfKits > 1) {
+                dialogButtons = [
+                    {
+                        'text':'Yes',
+                        'wrap': false
+                    },{
+                        'text':'No',
+                        'wrap': false
+                    }    
+                ]
+            } else {
+                dialogPrompt = "You have insufficient coins or kits to sample";
+                dialogButtons = [
+                    {
+                        'text':'OK',
+                        'wrap': false
+                    }    
+                ]
             }
-        }
-    )
-    .then(function (result) {
-        print.text += `Click button ${result.index}: ${result.text}\n`;
-    })
+            break;
+        case 2: 
+            dialogButtons = [
+                {
+                    'text':'OK',
+                    'wrap': false
+                }
+            ]
+            break;
+        case 3: 
+            dialogButtons = [
+                {
+                    'text':'OK',
+                    'wrap': false
+                }
+            ]
+            break;
+        case 4: 
+            dialogButtons = [
+                {
+                    'text':'OK',
+                    'wrap': false
+                }
+            ]
+            break;
+        case 5: 
+            dialogButtons = [
+                {
+                    'text':'OK',
+                    'wrap': false
+                }
+            ]
+            break;
+        default:
+    }
+
+    //console.log(dialogButtons);
+
+    setTimeout(() => {
+
+        scene.rexUI.modalPromise(
+            // Game object
+            CreateDialog(scene, dialogTitle, dialogPrompt, dialogButtons).setPosition(500, 300),
+            // Config
+            {
+                manualClose: true,
+                duration: {
+                    in: 300,
+                    out: 300
+                }
+            }
+        )
+        .then(function (result) {
+            switch (player.onTileType) {
+                case 0: 
+                    nextGo();
+                    break;
+                case 1: 
+                    //first check sufficient coins and kits
+                    if(player.noOfCoins > 0 && player.noOfKits > 1 && result.index == 0) {
+                        changeInventory(scene, 'coin', true, 1);
+                        recruitAttempt();
+                    } else {
+                        nextGo();
+                    }
+                    break;
+                case 2: 
+                    dialogButtons = [
+                        {
+                            'text':'OK',
+                            'wrap': false
+                        }
+                    ]
+                    break;
+                case 3: 
+                    dialogButtons = [
+                        {
+                            'text':'OK',
+                            'wrap': false
+                        }
+                    ]
+                    break;
+                case 4: 
+                    dialogButtons = [
+                        {
+                            'text':'OK',
+                            'wrap': false
+                        }
+                    ]
+                    break;
+                case 5: 
+                    dialogButtons = [
+                        {
+                            'text':'OK',
+                            'wrap': false
+                        }
+                    ]
+                    break;
+                default:
+            }
+        })
+        
+    }, DELAY_BEFORE_DIALOG_LOADS)
+    
+    
 
     return;
 
 }
 
 var onDiceRolled = function (scene, numberRolled) {
-    var moved = player.moveForward(numberRolled, onFinishedMoving);
+    if(awaitingRecruitmentOutcome == true) {
+        var dialogTitle;
+        var dialogPrompt;
+        var dialogButtons;
+
+        var itsEven = numberRolled % 2 == 0;
+
+        if(numberRolled % 2 == 0) {
+            //even
+            itsEven = true;
+            dialogTitle = 'Success!';
+            dialogPrompt = 'You have recruited your participant - you use one kit to collect your sample';
+            dialogButtons = [
+                {
+                    'text':'OK',
+                    'wrap': false
+                }    
+            ]
+        } else {
+            itsEven = false;
+            dialogTitle = 'Bad luck';
+            if(recruitmentAttemptNo < 2) {
+                if(player.noOfCoins > 0 && player.noOfKits > 1) {
+                    dialogPrompt = 'Would you like to have one last attempt to recruit by paying another coin? Roll an EVEN number to successfully recruit. An ODD number means no consent.';
+                    dialogButtons = [
+                        {
+                            'text':'Yes',
+                            'wrap': false
+                        },{
+                            'text':'No',
+                            'wrap': false
+                        }    
+                    ]
+    
+                } else {
+                    dialogPrompt = "You have insufficient coins or kits to sample";
+                    dialogButtons = [
+                        {
+                            'text':'OK',
+                            'wrap': false
+                        }    
+                    ]
+                }
+            } else {
+                dialogPrompt = "You will have to leave a colleague to try recruiting this household";
+                    dialogButtons = [
+                        {
+                            'text':'OK',
+                            'wrap': false
+                        }    
+                    ]
+            }
+            
+        }
+        
+        
+        setTimeout(() => {
+            scene.rexUI.modalPromise(
+                // Game object
+                CreateDialog(scene, dialogTitle, dialogPrompt, dialogButtons).setPosition(500, 300),
+                // Config
+                {
+                    manualClose: true,
+                    duration: {
+                        in: 300,
+                        out: 300
+                    }
+                }
+            )
+            .then(function (result) {
+                if(itsEven) {
+                    changeInventory(scene, 'kit', true, 1);
+                    changeInventory(scene, 'recruitment', false, 1);  
+                    awaitingRecruitmentOutcome = false; 
+                    recruitmentAttemptNo = 0;
+                    nextGo(); 
+                } else {
+                    if(player.noOfCoins > 0 && player.noOfKits > 1 && result.text == 'Yes') {
+                        changeInventory(scene, 'coin', true, 1);
+                        awaitingRecruitmentOutcome = true;  
+                        recruitAttempt();
+                    } else {
+                        awaitingRecruitmentOutcome = false;  
+                        recruitmentAttemptNo = 0;
+                        nextGo();
+                    }
+                }
+                
+            })            
+        }, DELAY_BEFORE_DIALOG_LOADS)
+    }
+    else {
+        //default is to move player
+        var moved = player.moveForward(numberRolled, onFinishedMoving);
+    }
+}
+
+var nextGo = function () {
+    //in onePlayer, just flash dice to roll again
+    dice.flash();
+    console.log('next go');
+}
+
+var recruitAttempt = function () {
+    dice.flash();
+    awaitingRecruitmentOutcome = true; //so we can chcek this in onDiceRolled above
+    recruitmentAttemptNo = recruitmentAttemptNo + 1
+    console.log('recruit attempt');
 }
 
 
@@ -521,6 +744,67 @@ var createTileMap = function (tilesMap, out) {
   return out;
 }
 
+var changeInventory = function (scene, item, subtract, amount) {
+    switch (item) {
+        case 'coin':
+            if(subtract) {
+                player.noOfCoins = player.noOfCoins - amount ;
+            } else {
+                player.noOfCoins = player.noOfCoins + amount ;
+            }
+            highlightTextObject(scene,coinText);
+            coinText.text = player.noOfCoins;
+            if (player.noOfCoins > 2) {
+                coinText.clearTint();
+                coinImage.clearTint();
+            } else {
+                coinText.setTint(INVENTORY_COLOURS[player.noOfCoins]);
+                coinImage.setTint(INVENTORY_COLOURS[player.noOfCoins]);
+            }
+            break;
+        case 'kit': 
+            if(subtract) {
+                player.noOfKits = player.noOfKits - amount ;
+            } else {
+                player.noOfKits = player.noOfKits + amount ;
+            }
+            highlightTextObject(scene,kitText);
+            kitText.text = player.noOfKits;
+            if (player.noOfKits > 2) {
+                kitText.clearTint();
+                kitImage.clearTint();
+            } else {
+                kitText.setTint(INVENTORY_COLOURS[player.noOfKits]);
+                kitImage.setTint(INVENTORY_COLOURS[player.noOfKits]);
+            }
+            break;
+        case 'recruitment': 
+            if(subtract) {
+                player.noOfRecruitments = player.noOfRecruitments - amount ;
+            } else {
+                player.noOfRecruitments = player.noOfRecruitments + amount ;
+            }
+            highlightTextObject(scene,recruitmentText);
+            recruitmentText.text = player.noOfRecruitments;
+            break;
+    }
+    return; 
+}
+
+var highlightTextObject = function (scene, textObject) {
+    var flashText = scene.tweens.add({
+        targets: textObject,
+        scale: 1.5,
+        ease: 'Linear',
+        duration: 300,
+        repeat: 0,
+        yoyo: true,
+      });
+    return; 
+}
+
+
+
 var config = {
   type: Phaser.AUTO,
   parent: 'phaser-example',
@@ -544,10 +828,22 @@ var config = {
   }
 };
 
+
+
 //top-level variables
 var gamevars = {
     noOfRecruitments:0
 };
 var player;
+var dice;
+var coinText;
+var kitText;
+var recruitmentText;
+var coinImage;
+var kitImage;
+var recruitmentImage;
+
+var awaitingRecruitmentOutcome = false;
+var recruitmentAttemptNo = 0 ;
 
 var game = new Phaser.Game(config);
