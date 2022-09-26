@@ -6,6 +6,8 @@ export default class Dice extends Phaser.GameObjects.Sprite {
     this.callback = callback;
     this.rolling = false;
 
+    this.rollCounter = 0; //for fudging rolls only!)
+
     this.setOrigin(0.5, 0.5); //means tween origin is in cente of die
 
     this.flashTween = this.flashTween = this.scene.tweens.add({
@@ -30,7 +32,19 @@ export default class Dice extends Phaser.GameObjects.Sprite {
 
     this.on('animationcomplete', ()=>{
       //generate a random number
-      var rolled = this.randomIntFromInterval(1,6); 
+      var rolled;
+      if (this.rollCounter == 0) {
+        rolled = 4; //this.randomIntFromInterval(1,6); 
+        this.rollCounter = 1;
+    } else if (this.rollCounter == 1) {
+      rolled = 4; //this.randomIntFromInterval(1,6); 
+      this.rollCounter = 2;
+    } else if (this.rollCounter == 2) {
+      rolled = 5; //this.randomIntFromInterval(1,6); 
+      this.rollCounter = 3;
+    } else {
+      rolled = this.randomIntFromInterval(1,6); 
+    }
       //console.log(rolled);
       this.setFrame(rolled-1);
       this.callback(scene, rolled);
@@ -51,26 +65,7 @@ export default class Dice extends Phaser.GameObjects.Sprite {
   }
 
   flash() {
-    //if(this.flashTween) {
-      //if(this.flashTween.isPaused()){
-        this.flashTween.resume(); 
-      //} else {
-      //  this.flashTween.play();    
-      //}
-    //} else {
-    //  this.flashTween = this.scene.tweens.add({
-    //    targets: this,
-    //    scale: 1.1,
-    //    ease: 'Linear',
-    //    duration: 200,
-    //    repeat: -1,
-    //    yoyo: true,
-    //    //to: { x: 0.5, y: 0.5}
-    //  });//.to({ x: 0.5, y: 0.5});
-
-    //}
-    
-    
+    this.flashTween.resume(); 
   }
 
   randomIntFromInterval(min, max) { // min and max included - https://stackoverflow.com/questions/4959975/generate-random-number-between-two-numbers-in-javascript
