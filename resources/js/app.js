@@ -72,11 +72,11 @@ const CHALLENGE_PROMPTS = [
     'You and your data are quarantined in this spot. MISS A TURN until a team member comes to your spot and can collect the measurements from you, by handing the data over the fence.',
     'A research assistant helping with the study was fabricating data instead of going into the field and conducting interviews. LOSE TWO PARTICIPANTS.',
     'Study coordination centre staff did not inform the study team the fridge had broken for 24 hours, so the stored samples all expired. LOSE TWO PARTICIPANTS',
-    'Lift in the high rise tower was broken. SPEND 1 COIN for the extra time it takes to haul all the equipment up to floor 10.  ​',
+    'Lift in the high rise tower was broken. SPEND 1 COIN for the extra time it takes to haul all the equipment up to floor 10.',
     'An interview takes twice as long, as the participant had a lot of slightly traumatic stories to share. They clearly appreciated the social contact though! SPEND AN EXTRA KIT, BUT GAIN AN EXTRA TURN. They were a lovely participant and it reminded you about why you enjoy your job. ​',
     'Participant gives you a cup of tea and homemade cake. Gain an extra turn. You feel refreshed!',
-    'Monkey runs off with all your batteries. LOSE ALL YOUR KIT',
-    'Ethics amendment is being processed. ALL PLAYERS MISS A TURN. Each person needs to turn over the hourglass and wait the time out.'
+    'A monkey runs off with all your batteries. LOSE ALL YOUR KIT',
+    'Ethics amendment is being processed. ALL PLAYERS MISS A TURN. '
 ]
 
 const CHALLENGE_ACTIONS = [
@@ -112,6 +112,12 @@ const CHALLENGE_ACTIONS = [
     },
     {
         'money':0,
+        'kit':0,
+        'recruitment':0,
+        'turn':1
+    },
+    {
+        'money':0,
         'kit':-9999,  //lose all this player's kit
         'recruitment':0,
         'turn':0
@@ -120,7 +126,7 @@ const CHALLENGE_ACTIONS = [
         'money':0,
         'kit': 0,
         'recruitment':0,
-        'turn':-9999 //all players have a time out!
+        'turn':-1 
     }
 ]
 
@@ -837,7 +843,8 @@ var onDiceRolled = function (numberRolled) {
 
 var nextGo = function () {
     if(player.noOfTurns > 0) {
-        //this player has another go
+        //this player has another go - doesn'tv really make sense until multi-player
+        player.noOfTurns = player.noOfTurns - 1;
         nextGo();
     } else if (player.noOfTurns < 0) {
         //I'm missing a go
@@ -857,7 +864,7 @@ var recruitAttempt = function () {
 
 var drawChallengeCard = function () {
     //generate random number
-    var cardDrawn = 4; //randomIntFromInterval(0,CHALLENGE_TITLES.length)
+    var cardDrawn = 7; //randomIntFromInterval(0,CHALLENGE_TITLES.length)
 
     var dialogTitle = CHALLENGE_TITLES[cardDrawn];
     var dialogPrompt = CHALLENGE_PROMPTS[cardDrawn];
