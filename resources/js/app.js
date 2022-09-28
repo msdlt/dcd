@@ -54,7 +54,7 @@ const TILEPROMPTS = [
     'Data collection can be challenging! Click OK to see your challenge.',
     'You have three turns to get your samples to a study centre before they become unusable. ',
     'Collect FIVE COINS and FIVE SAMPLE KITS. ',
-    'Collect THREE COINS and THREE SAMPLE KITS. ',
+    'Collect THREE COINS and TWO SAMPLE KITS. ',
 ]
 
 const CHALLENGE_TITLES = [
@@ -73,7 +73,7 @@ const CHALLENGE_PROMPTS = [
     'A research assistant helping with the study was fabricating data instead of going into the field and conducting interviews. LOSE TWO PARTICIPANTS.',
     'Study coordination centre staff did not inform the study team the fridge had broken for 24 hours, so the stored samples all expired. LOSE TWO PARTICIPANTS',
     'Lift in the high rise tower was broken. SPEND 1 COIN for the extra time it takes to haul all the equipment up to floor 10.  ​',
-    'An interview takes twice as long as the participant had a lot of slightly traumatic stories to share, although they clearly appreciated the social contact. SPEND AN EXTRA KIT, BUT GAIN AN EXTRA TURN. They were a lovely participant and it reminded you about why you enjoy your job. ​',
+    'An interview takes twice as long, as the participant had a lot of slightly traumatic stories to share. They clearly appreciated the social contact though! SPEND AN EXTRA KIT, BUT GAIN AN EXTRA TURN. They were a lovely participant and it reminded you about why you enjoy your job. ​',
     'Participant gives you a cup of tea and homemade cake. Gain an extra turn. You feel refreshed!',
     'Monkey runs off with all your batteries. LOSE ALL YOUR KIT',
     'Ethics amendment is being processed. ALL PLAYERS MISS A TURN. Each person needs to turn over the hourglass and wait the time out.'
@@ -243,6 +243,8 @@ class Demo extends Phaser.Scene {
     recruitmentText = this.add.text(870, 660, player.noOfRecruitments, { fontSize: '32px'}).setOrigin(0.5, 0.5);
     hourglassText = this.add.text(930, 660, player.noOfTurnsToGetToStudyCentre, { fontSize: '32px'}).setOrigin(0.5, 0.5);
     hourglassText.visible = false;
+
+    globalScene = this;
     
   }
 }
@@ -335,7 +337,7 @@ class Player extends Phaser.GameObjects.Sprite {
         super(scene, 0,0, texture, SPRITE_REST_FRAME_NO); //add this sprite to the scene
 
         //player-level scores
-        this.noOfRecruitments = 2; //INIT_NO_RECRUITMENTS;
+        this.noOfRecruitments = INIT_NO_RECRUITMENTS //2; //INIT_NO_RECRUITMENTS;
         this.noOfCoins = INIT_NO_COINS;
         this.noOfKits = INIT_NO_KITS;
         this.onTileType = 4; //study coordination centre - start
@@ -452,17 +454,17 @@ class Player extends Phaser.GameObjects.Sprite {
 * dialogButtons = []
 */
 
-var CreateDialog = function (scene, title, prompt, dialogButtons) {
+var CreateDialog = function (title, prompt, dialogButtons) {
 
-    var dialog = scene.rexUI.add.dialog({
+    var dialog = globalScene.rexUI.add.dialog({
         x: 500,
         y: 400,
         width: 600,
-        background: scene.rexUI.add.roundRectangle(0, 0, 100, 100, 20, 0x1565c0),
+        background: globalScene.rexUI.add.roundRectangle(0, 0, 100, 100, 20, 0x1565c0),
 
-        title: CreateLabel(scene, title, false, 0x003c8f),
+        title: CreateLabel(title, false, 0x003c8f),
         
-        description: CreateLabel(scene, prompt, true, 0x1565c0),
+        description: CreateLabel(prompt, true, 0x1565c0),
 
         
         actions: [],//will be added later
@@ -498,7 +500,7 @@ var CreateDialog = function (scene, title, prompt, dialogButtons) {
     //dialog.addAction(CreateLabel(scene, 'OK', false)); 
     
     dialogButtons.forEach((dialogButton) => {
-        var newLabel = CreateLabel(scene, dialogButton.text, dialogButton.wrap)
+        var newLabel = CreateLabel(dialogButton.text, dialogButton.wrap)
         dialog.addAction(newLabel); 
     })
 
@@ -518,21 +520,21 @@ var CreateDialog = function (scene, title, prompt, dialogButtons) {
     return dialog;
 }
 
-var CreateLabel = function (scene, text, wrap, colour) {
+var CreateLabel = function (text, wrap, colour) {
     var background;
     if (colour){
-        background = scene.rexUI.add.roundRectangle(0, 0, 100, 40, 20, colour);
+        background = globalScene.rexUI.add.roundRectangle(0, 0, 100, 40, 20, colour);
     } else {
-        background = scene.rexUI.add.roundRectangle(0, 0, 100, 40, 20, 0x5e92f3);
+        background = globalScene.rexUI.add.roundRectangle(0, 0, 100, 40, 20, 0x5e92f3);
     }
     //var background = scene.rexUI.add.roundRectangle(0, 0, 100, 40, 20, 0x5e92f3);
-    var textObj = scene.add.text(0, 0, text, {
+    var textObj = globalScene.add.text(0, 0, text, {
         fontSize: '24px'
     });
     if (wrap) {
-        textObj = scene.rexUI.wrapExpandText(textObj);
+        textObj = globalScene.rexUI.wrapExpandText(textObj);
     }
-    return scene.rexUI.add.label({
+    return globalScene.rexUI.add.label({
         //width: 60, // Minimum width of round-rectangle
         //height: 40, // Minimum height of round-rectangle
 
@@ -551,14 +553,14 @@ var CreateLabel = function (scene, text, wrap, colour) {
 }
 
 
-var onFinishedMoving = function (scene) {
+var onFinishedMoving = function () {
     
     //first deal with any possible sample loss for not making it to study centre in time
-    checkAndProcessTimedChallenge(scene); //this will call processTileLandedOn in turn 
+    checkAndProcessTimedChallenge(); //this will call processTileLandedOn in turn 
 
 }
 
-var processTileLandedOn = function (scene) {
+var processTileLandedOn = function () {
 
     var dialogTitle = TILEDESCRIPTIONS[player.onTileType];
     var dialogPrompt = TILEPROMPTS[player.onTileType];
@@ -642,9 +644,9 @@ var processTileLandedOn = function (scene) {
 
     setTimeout(() => {
 
-        scene.rexUI.modalPromise(
+        globalScene.rexUI.modalPromise(
             // Game object
-            CreateDialog(scene, dialogTitle, dialogPrompt, dialogButtons).setPosition(500, 300),
+            CreateDialog(dialogTitle, dialogPrompt, dialogButtons).setPosition(500, 300),
             // Config
             {
                 manualClose: true,
@@ -669,7 +671,7 @@ var processTileLandedOn = function (scene) {
                             'turn':0 
                         }
                         //updateInventory(scene, 'coin', true, 1);
-                        updateInventory(scene, updateDetails);
+                        updateInventory(updateDetails);
                         recruitAttempt();
                     } else {
                         nextGo();
@@ -679,7 +681,7 @@ var processTileLandedOn = function (scene) {
                     //data collection challenge 
                     if(result.index == 0) {
                         //OK clicked
-                        drawChallengeCard(scene);
+                        drawChallengeCard();
                     }
                     break;
                 case 3: 
@@ -690,25 +692,18 @@ var processTileLandedOn = function (scene) {
                         hourglassText.text = player.noOfTurnsUsed;
                         hourglassImage.visible = true;
                         hourglassText.visible = true;
-                        highlightTextObject(scene,hourglassText);
+                        highlightTextObject(hourglassText);
                         player.noOfTurnsToGetToStudyCentre = 3;
+                        nextGo();
                     }
                     break; 
                 case 4: 
-                    dialogButtons = [
-                        {
-                            'text':'OK',
-                            'wrap': false
-                        }
-                    ]
+                    //main study centre
+                    updateInventory(STUDY_CENTRE_ACTIONS[0]);
                     break;
                 case 5: 
-                    dialogButtons = [
-                        {
-                            'text':'OK',
-                            'wrap': false
-                        }
-                    ]
+                    //satellite study centre
+                    updateInventory(STUDY_CENTRE_ACTIONS[1]);
                     break;
                 default:
             }
@@ -722,7 +717,7 @@ var processTileLandedOn = function (scene) {
 
 }
 
-var onDiceRolled = function (scene, numberRolled) {
+var onDiceRolled = function (numberRolled) {
     if(awaitingRecruitmentOutcome == true) {
         //dealing with recruitment logic
         var dialogTitle;
@@ -781,9 +776,9 @@ var onDiceRolled = function (scene, numberRolled) {
         
         
         setTimeout(() => {
-            scene.rexUI.modalPromise(
+            globalScene.rexUI.modalPromise(
                 // Game object
-                CreateDialog(scene, dialogTitle, dialogPrompt, dialogButtons).setPosition(500, 300),
+                CreateDialog(globalScene, dialogTitle, dialogPrompt, dialogButtons).setPosition(500, 300),
                 // Config
                 {
                     manualClose: true,
@@ -805,7 +800,7 @@ var onDiceRolled = function (scene, numberRolled) {
 
                     //updateInventory(scene, 'kit', true, 1);
                     //updateInventory(scene, 'recruitment', false, 1); 
-                    updateInventory(scene, updateDetails);   
+                    updateInventory(updateDetails);   
                     awaitingRecruitmentOutcome = false; 
                     recruitmentAttemptNo = 0;
                     nextGo(); 
@@ -818,7 +813,7 @@ var onDiceRolled = function (scene, numberRolled) {
                             'turn':0 
                         }
                         //updateInventory(scene, 'coin', true, 1);
-                        updateInventory(scene, updateDetails);   
+                        updateInventory(updateDetails);   
                         awaitingRecruitmentOutcome = true;  
                         recruitAttempt();
                     } else {
@@ -860,9 +855,9 @@ var recruitAttempt = function () {
     console.log('recruit attempt');
 }
 
-var drawChallengeCard = function (scene) {
+var drawChallengeCard = function () {
     //generate random number
-    var cardDrawn = randomIntFromInterval(0,CHALLENGE_TITLES.length)
+    var cardDrawn = 4; //randomIntFromInterval(0,CHALLENGE_TITLES.length)
 
     var dialogTitle = CHALLENGE_TITLES[cardDrawn];
     var dialogPrompt = CHALLENGE_PROMPTS[cardDrawn];
@@ -874,9 +869,9 @@ var drawChallengeCard = function (scene) {
     ]
     
     setTimeout(() => {
-        scene.rexUI.modalPromise(
+        globalScene.rexUI.modalPromise(
             // Game object
-            CreateDialog(scene, dialogTitle, dialogPrompt, dialogButtons).setPosition(500, 300),
+            CreateDialog(dialogTitle, dialogPrompt, dialogButtons).setPosition(500, 300),
             // Config
             {
                 manualClose: true,
@@ -888,13 +883,13 @@ var drawChallengeCard = function (scene) {
         )
         .then(function (result) {
             var updateDetails = CHALLENGE_ACTIONS[cardDrawn]
-            updateInventory(scene, updateDetails);   
+            updateInventory(updateDetails);   
             nextGo(); 
         })            
     }, DELAY_BEFORE_DIALOG_LOADS)
 }
 
-var missTurn = function (scene) {
+var missTurn = function () {
     var dialogTitle = 'Miss a turn';
     var dialogPrompt = 'Click OK to move on to the next player';
     var dialogButtons = [
@@ -903,11 +898,14 @@ var missTurn = function (scene) {
             'wrap': false
         }    
     ]
-    
+
+    //var scene = globalScene;
+    //console.log(scene);
+
     setTimeout(() => {
-        scene.rexUI.modalPromise(
+        globalScene.rexUI.modalPromise(
             // Game object
-            CreateDialog(scene, dialogTitle, dialogPrompt, dialogButtons).setPosition(500, 300),
+            CreateDialog(dialogTitle, dialogPrompt, dialogButtons).setPosition(500, 300),
             // Config
             {
                 manualClose: true,
@@ -924,11 +922,11 @@ var missTurn = function (scene) {
     }, DELAY_BEFORE_DIALOG_LOADS)
 }
 
-var checkAndProcessTimedChallenge = function (scene) {
+var checkAndProcessTimedChallenge = function () {
     if(player.noOfTurnsToGetToStudyCentre > 0) {
         player.noOfTurnsUsed = player.noOfTurnsUsed + 1;
         hourglassText.text = player.noOfTurnsUsed;
-        highlightTextObject(scene,hourglassText);
+        highlightTextObject(hourglassText);
         if((player.onTileType == 4 || player.onTileType == 5)) {
             //you made it!
             //dialog to say so
@@ -942,9 +940,9 @@ var checkAndProcessTimedChallenge = function (scene) {
             ]
             
             setTimeout(() => {
-                scene.rexUI.modalPromise(
+                globalScene.rexUI.modalPromise(
                     // Game object
-                    CreateDialog(scene, dialogTitle, dialogPrompt, dialogButtons).setPosition(500, 300),
+                    CreateDialog(dialogTitle, dialogPrompt, dialogButtons).setPosition(500, 300),
                     // Config
                     {
                         manualClose: true,
@@ -960,7 +958,7 @@ var checkAndProcessTimedChallenge = function (scene) {
                     player.noOfTurnsToGetToStudyCentre = 0;
                     hourglassText.visible = false;
                     hourglassImage.visible = false;
-                    processTileLandedOn(scene);
+                    processTileLandedOn();
                 })            
             }, DELAY_BEFORE_DIALOG_LOADS)
         } else if(!(player.onTileType == 4 || player.onTileType == 5)) {
@@ -977,9 +975,9 @@ var checkAndProcessTimedChallenge = function (scene) {
                 ]
                 
                 setTimeout(() => {
-                    scene.rexUI.modalPromise(
+                    globalScene.rexUI.modalPromise(
                         // Game object
-                        CreateDialog(scene, dialogTitle, dialogPrompt, dialogButtons).setPosition(500, 300),
+                        CreateDialog(dialogTitle, dialogPrompt, dialogButtons).setPosition(500, 300),
                         // Config
                         {
                             manualClose: true,
@@ -997,12 +995,12 @@ var checkAndProcessTimedChallenge = function (scene) {
                             'recruitment':-player.samplesCollectedSinceLastStudyCentre,
                             'turn':0 
                         }
-                        updateInventory(scene, updateDetails);  
+                        updateInventory(updateDetails);  
                         player.noOfTurnsUsed = 0;
                         player.noOfTurnsToGetToStudyCentre = 0;
                         hourglassText.visible = false;
                         hourglassImage.visible = false;
-                        processTileLandedOn(scene);
+                        processTileLandedOn();
                     })            
                 }, DELAY_BEFORE_DIALOG_LOADS)
             } else {
@@ -1010,12 +1008,12 @@ var checkAndProcessTimedChallenge = function (scene) {
                 //player.noOfTurnsUsed = player.noOfTurnsUsed + 1;
                 //hourglassText.text = player.noOfTurnsUsed;
                 //highlightTextObject(scene,hourglassText);
-                processTileLandedOn(scene);
+                processTileLandedOn();
             }
         }
 
     } else {
-        processTileLandedOn(scene); 
+        processTileLandedOn(); 
     }
     
 }
@@ -1049,13 +1047,13 @@ var createTileMap = function (tilesMap, out) {
 *       'recruitment':0,
 *       'turn':-1  //need to make player aware that losing a turn
 *   }
-*   And scene object as need to pass to highlightTextObject
+*   
 */
-var updateInventory = function (scene, updateDetails) {
+var updateInventory = function (updateDetails) {
     if(updateDetails.money!=0) {
         player.noOfCoins = player.noOfCoins + updateDetails.money;  //if -ve then will be subtracted
         if(player.noOfCoins < 0) player.noOfCoins = 0;
-        highlightTextObject(scene,coinText);
+        highlightTextObject(coinText);
         coinText.text = player.noOfCoins;
         if (player.noOfCoins > 2) {
             coinText.clearTint();
@@ -1068,7 +1066,7 @@ var updateInventory = function (scene, updateDetails) {
     if(updateDetails.kit!=0) {
         player.noOfKits = player.noOfKits + updateDetails.kit ;
         if(player.noOfKits < 0) player.noOfKits = 0;
-        highlightTextObject(scene,kitText);
+        highlightTextObject(kitText);
         kitText.text = player.noOfKits;
         if (player.noOfKits > 2) {
             kitText.clearTint();
@@ -1082,7 +1080,7 @@ var updateInventory = function (scene, updateDetails) {
         player.noOfRecruitments = player.noOfRecruitments + updateDetails.recruitment;
         player.samplesCollectedSinceLastStudyCentre = player.samplesCollectedSinceLastStudyCentre + updateDetails.recruitment; //used to calculate how many sampkles to lose in timed challenge
         if(player.noOfRecruitments < 0) player.noOfRecruitments = 0;
-        highlightTextObject(scene,recruitmentText);
+        highlightTextObject(recruitmentText);
         recruitmentText.text = player.noOfRecruitments;
     }
     if(updateDetails.turn!=0) {
@@ -1091,8 +1089,8 @@ var updateInventory = function (scene, updateDetails) {
     return; 
 }
 
-var highlightTextObject = function (scene, textObject) {
-    var flashText = scene.tweens.add({
+var highlightTextObject = function (textObject) {
+    var flashText = globalScene.tweens.add({
         targets: textObject,
         scale: 1.5,
         ease: 'Linear',
@@ -1149,6 +1147,8 @@ var awaitingRecruitmentOutcome = false;
 var recruitmentAttemptNo = 0 ;
 
 var game = new Phaser.Game(config);
+
+var globalScene;
 
 function randomIntFromInterval(min, max) { // min and max included - https://stackoverflow.com/questions/4959975/generate-random-number-between-two-numbers-in-javascript
     return Math.floor(Math.random() * (max - min + 1) + min);

@@ -37,17 +37,17 @@ export default class Dice extends Phaser.GameObjects.Sprite {
         rolled = 4; //this.randomIntFromInterval(1,6); 
         this.rollCounter = 1;
     } else if (this.rollCounter == 1) {
-      rolled = 4; //this.randomIntFromInterval(1,6); 
+      rolled = 5; //this.randomIntFromInterval(1,6); 
       this.rollCounter = 2;
     } else if (this.rollCounter == 2) {
-      rolled = 5; //this.randomIntFromInterval(1,6); 
+      rolled = 6; //this.randomIntFromInterval(1,6); 
       this.rollCounter = 3;
     } else {
       rolled = this.randomIntFromInterval(1,6); 
     }
       //console.log(rolled);
       this.setFrame(rolled-1);
-      this.callback(scene, rolled);
+      this.callback(rolled);
       this.rolling = false;
     })
     
