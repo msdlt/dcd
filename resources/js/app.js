@@ -5,6 +5,19 @@ import BoardPlugin from 'phaser3-rex-plugins/plugins/board-plugin.js';
 import UIPlugin from 'phaser3-rex-plugins/templates/ui/ui-plugin.js';
 import Dice from './dice.js';
 
+const SPRITE_REST_FRAME_NO = 3;
+
+const PLAYER_ID = 0;
+
+//initial values
+const INIT_NO_RECRUITMENTS = 0;
+const INIT_NO_COINS = 5;
+const INIT_NO_KITS = 5;
+
+const GAME_TIME_LIMIT = 90; //1800 seconds
+
+const DELAY_BEFORE_DIALOG_LOADS = 300; //ms
+
 /*
 space=nothing
 0 = normal square - although may want e.g a border to indicate different countries
@@ -160,16 +173,13 @@ const TILESMAP = [
   '5211  0215' 
 ];
 
-const SPRITE_REST_FRAME_NO = 3;
 
-//initial values
-const INIT_NO_RECRUITMENTS = 0;
-const INIT_NO_COINS = 5;
-const INIT_NO_KITS = 5;
 
-const DELAY_BEFORE_DIALOG_LOADS = 300; //ms
-
-//const Between = Phaser.Math.Between;
+/*
+ *
+ * Creating the scene
+ *
+ */
 
 class Demo extends Phaser.Scene {
   constructor() {
@@ -202,6 +212,10 @@ class Demo extends Phaser.Scene {
         'assets/images/man_dark.png',
         { frameWidth: 32, frameHeight: 32 }
     );
+    this.load.spritesheet('meeple-sheet', 
+        'assets/images/meeple-sheet.png',
+        { frameWidth: 72, frameHeight: 72 }
+    );
 
     //images for scoring
     this.load.image('coin-white', 
@@ -212,6 +226,12 @@ class Demo extends Phaser.Scene {
     );
     this.load.image('person-white', 
         'assets/images/person-white.png'
+    );
+    this.load.image('people-white', 
+        'assets/images/people-white.png'
+    );
+    this.load.image('stopwatch-white', 
+        'assets/images/stopwatch-white.png'
     );
     this.load.image('hourglass-white', 
         'assets/images/hourglass-white.png'
@@ -234,27 +254,41 @@ class Demo extends Phaser.Scene {
 
     var dialog = this.rexUI.add.dialog(config);
    
-    player = new Player(board, 'man_dark');
+    //player = new Player(board, 'man_dark');
+    player = new Player(board, 'meeple-sheet');
+    player.setScale(0.8);
 
     dice = new Dice(this, 750, 90, 'dice-faces', 5, onDiceRolled);
 
     coinImage = this.add.image(750, 600, 'coin-white').setOrigin(0.5, 0.5);
     kitImage = this.add.image(810, 600, 'syringe-white').setOrigin(0.5, 0.5);
     recruitmentImage = this.add.image(870, 600, 'person-white').setOrigin(0.5, 0.5);
+    recruitmentsImage = this.add.image(280, 300, 'people-white').setOrigin(0.5, 0.5);
+    stopwatchImage = this.add.image(380, 300, 'stopwatch-white').setOrigin(0.5, 0.5);
     hourglassImage = this.add.image(930, 600, 'hourglass-white').setOrigin(0.5, 0.5);
     hourglassImage.visible = false;
 
     coinText = this.add.text(750, 660, player.noOfCoins, { fontSize: '32px'}).setOrigin(0.5, 0.5);
     kitText = this.add.text(810, 660, player.noOfKits, { fontSize: '32px'}).setOrigin(0.5, 0.5);
     recruitmentText = this.add.text(870, 660, player.noOfRecruitments, { fontSize: '32px'}).setOrigin(0.5, 0.5);
+    recruitmentsText = this.add.text(280, 360, totalNoOfRecruitments, { fontSize: '32px'}).setOrigin(0.5, 0.5);
+    stopwatchText = this.add.text(380, 360, formatTime(timeLeft), { fontSize: '32px'}).setOrigin(0.5, 0.5);
     hourglassText = this.add.text(930, 660, player.noOfTurnsToGetToStudyCentre, { fontSize: '32px'}).setOrigin(0.5, 0.5);
     hourglassText.visible = false;
 
     globalScene = this;
+
+    // Each 1000 ms call onEvent
+    var timerEvent = this.time.addEvent({ delay: 1000, callback: onGameTimer, callbackScope: this, loop: true });
     
   }
 }
 
+/*
+ *
+ * Creating the board 
+ *
+ */
 
 class Board extends RexPlugins.Board.Board {
   constructor(scene, tilesMap) {
@@ -336,11 +370,39 @@ class Board extends RexPlugins.Board.Board {
   }
 }
 
+var getQuadGrid = function (scene) {
+    var grid = scene.rexBoard.add.quadGrid({
+        x: 60,  //x and y of overall board
+        y: 60,
+        cellWidth: 60,
+        cellHeight: 60,
+        type: 0
+    });
+    return grid;
+  }
+  
+var createTileMap = function (tilesMap, out) {
+    if (out === undefined) {
+        out = [];
+    }
+    for (var i = 0, cnt = tilesMap.length; i < cnt; i++) {
+        out.push(tilesMap[i].split(''));
+    }
+    return out;
+  }
+
+/*
+ *
+ * Creating the player
+ *
+ */
+
 class Player extends Phaser.GameObjects.Sprite {
     constructor(board, texture) {
         var scene = board.scene;
 
-        super(scene, 0,0, texture, SPRITE_REST_FRAME_NO); //add this sprite to the scene
+        //super(scene, 0,0, texture, SPRITE_REST_FRAME_NO); //add this sprite to the scene
+        super(scene, 0,0, texture, PLAYER_ID); //add this sprite to the scene
 
         //player-level scores
         this.noOfRecruitments = INIT_NO_RECRUITMENTS //2; //INIT_NO_RECRUITMENTS;
@@ -356,7 +418,7 @@ class Player extends Phaser.GameObjects.Sprite {
 
         scene.add.existing(this);
 
-        scene.anims.create({
+        /*scene.anims.create({
             key: 'up',
             frames: this.anims.generateFrameNumbers(texture, {start: 0, end: 1}),
             frameRate: 10,
@@ -388,7 +450,7 @@ class Player extends Phaser.GameObjects.Sprite {
             key: 'wait',
             frames: [{key: texture, frame: SPRITE_REST_FRAME_NO}],
             frameRate: 20,
-        });
+        });*/
 
         board.addChess(this,0,0,2,true);
 
@@ -421,7 +483,7 @@ class Player extends Phaser.GameObjects.Sprite {
     moveAlongPath(path, callbackOnFinished) {
         //path is array of tiles - first one is removed every time this is called.
         if (path.length === 0) {
-            this.anims.play('wait');
+            //this.anims.play('wait');
             callbackOnFinished(this.scene);
             return;
         }
@@ -436,7 +498,7 @@ class Player extends Phaser.GameObjects.Sprite {
         //console.log(player.onTileType)
         this.monopoly.setFace(this.moveTo.destinationDirection);
         
-        switch (this.moveTo.destinationDirection) {
+        /*switch (this.moveTo.destinationDirection) {
             case 0: 
                 this.anims.play('right');
                 break;
@@ -450,113 +512,15 @@ class Player extends Phaser.GameObjects.Sprite {
                 this.anims.play('up');
                 break;
             default:
-        }
+        }*/
     }
 }
 
 /*
-* title
-* prompt
-* dialogButtons = []
-*/
-
-var CreateDialog = function (title, prompt, dialogButtons) {
-
-    var dialog = globalScene.rexUI.add.dialog({
-        x: 500,
-        y: 400,
-        width: 600,
-        background: globalScene.rexUI.add.roundRectangle(0, 0, 100, 100, 20, 0x1565c0),
-
-        title: CreateLabel(title, false, 0x003c8f),
-        
-        description: CreateLabel(prompt, true, 0x1565c0),
-
-        
-        actions: [],//will be added later
-
-        expand: {
-            title: false,
-            // content: false,
-            description: true,
-            // choices: false,
-            // actions: true,
-        },
-
-        space: {
-            title: 25,
-            content: 25,
-            action: 15,
-
-            left: 20,
-            right: 20,
-            top: 20,
-            bottom: 20,
-        },
-
-        align: {
-            actions: 'right', // 'center'|'left'|'right'
-        },
-
-        expand: {
-            content: false,  // Content is a pure text object
-        }
-    });
-    
-    //dialog.addAction(CreateLabel(scene, 'OK', false)); 
-    
-    dialogButtons.forEach((dialogButton) => {
-        var newLabel = CreateLabel(dialogButton.text, dialogButton.wrap)
-        dialog.addAction(newLabel); 
-    })
-
-    dialog.layout();  //have to call this after addAction to get it to place buttons on dialog
-
-    dialog
-        .on('button.click', function (button, groupName, index, pointer, event) {
-            dialog.emit('modal.requestClose', { index: index, text: button.text });
-        })
-        .on('button.over', function (button, groupName, index, pointer, event) {
-            button.getElement('background').setStrokeStyle(1, 0xffffff);
-        })
-        .on('button.out', function (button, groupName, index, pointer, event) {
-            button.getElement('background').setStrokeStyle();
-        });
-
-    return dialog;
-}
-
-var CreateLabel = function (text, wrap, colour) {
-    var background;
-    if (colour){
-        background = globalScene.rexUI.add.roundRectangle(0, 0, 100, 40, 20, colour);
-    } else {
-        background = globalScene.rexUI.add.roundRectangle(0, 0, 100, 40, 20, 0x5e92f3);
-    }
-    //var background = scene.rexUI.add.roundRectangle(0, 0, 100, 40, 20, 0x5e92f3);
-    var textObj = globalScene.add.text(0, 0, text, {
-        fontSize: '24px'
-    });
-    if (wrap) {
-        textObj = globalScene.rexUI.wrapExpandText(textObj);
-    }
-    return globalScene.rexUI.add.label({
-        //width: 60, // Minimum width of round-rectangle
-        //height: 40, // Minimum height of round-rectangle
-
-        background: background,
-
-        text: textObj,
-        expandTextWidth: wrap,
-
-        space: {
-            left: 10,
-            right: 10,
-            top: 10,
-            bottom: 10
-        }
-    });
-}
+ *
+ * Functions for game play
+ * 
+ */
 
 
 var onFinishedMoving = function () {
@@ -1024,28 +988,8 @@ var checkAndProcessTimedChallenge = function () {
     }
     
 }
-    
+   
 
-var getQuadGrid = function (scene) {
-  var grid = scene.rexBoard.add.quadGrid({
-      x: 100,
-      y: 100,
-      cellWidth: 60,
-      cellHeight: 60,
-      type: 0
-  });
-  return grid;
-}
-
-var createTileMap = function (tilesMap, out) {
-  if (out === undefined) {
-      out = [];
-  }
-  for (var i = 0, cnt = tilesMap.length; i < cnt; i++) {
-      out.push(tilesMap[i].split(''));
-  }
-  return out;
-}
 
 /*
 *   Expecting updateDetails object of format: {
@@ -1108,13 +1052,171 @@ var highlightTextObject = function (textObject) {
     return; 
 }
 
+/*
+ *
+ * Functions to create dialogs and labels
+ *
+ */
 
+/*
+* title
+* prompt
+* dialogButtons = []
+*/
+
+var CreateDialog = function (title, prompt, dialogButtons) {
+
+    var dialog = globalScene.rexUI.add.dialog({
+        x: 500,
+        y: 400,
+        width: 600,
+        background: globalScene.rexUI.add.roundRectangle(0, 0, 100, 100, 20, 0x1565c0),
+
+        title: CreateLabel(title, false, 0x003c8f),
+        
+        description: CreateLabel(prompt, true, 0x1565c0),
+
+        
+        actions: [],//will be added later
+
+        expand: {
+            title: false,
+            // content: false,
+            description: true,
+            // choices: false,
+            // actions: true,
+        },
+
+        space: {
+            title: 25,
+            content: 25,
+            action: 15,
+
+            left: 20,
+            right: 20,
+            top: 20,
+            bottom: 20,
+        },
+
+        align: {
+            actions: 'right', // 'center'|'left'|'right'
+        },
+
+        expand: {
+            content: false,  // Content is a pure text object
+        }
+    });
+    
+    //dialog.addAction(CreateLabel(scene, 'OK', false)); 
+    
+    dialogButtons.forEach((dialogButton) => {
+        var newLabel = CreateLabel(dialogButton.text, dialogButton.wrap)
+        dialog.addAction(newLabel); 
+    })
+
+    dialog.layout();  //have to call this after addAction to get it to place buttons on dialog
+
+    dialog
+        .on('button.click', function (button, groupName, index, pointer, event) {
+            dialog.emit('modal.requestClose', { index: index, text: button.text });
+        })
+        .on('button.over', function (button, groupName, index, pointer, event) {
+            button.getElement('background').setStrokeStyle(1, 0xffffff);
+        })
+        .on('button.out', function (button, groupName, index, pointer, event) {
+            button.getElement('background').setStrokeStyle();
+        });
+
+    return dialog;
+}
+
+var CreateLabel = function (text, wrap, colour) {
+    var background;
+    if (colour){
+        background = globalScene.rexUI.add.roundRectangle(0, 0, 100, 40, 20, colour);
+    } else {
+        background = globalScene.rexUI.add.roundRectangle(0, 0, 100, 40, 20, 0x5e92f3);
+    }
+    //var background = scene.rexUI.add.roundRectangle(0, 0, 100, 40, 20, 0x5e92f3);
+    var textObj = globalScene.add.text(0, 0, text, {
+        fontSize: '24px'
+    });
+    if (wrap) {
+        textObj = globalScene.rexUI.wrapExpandText(textObj);
+    }
+    return globalScene.rexUI.add.label({
+        //width: 60, // Minimum width of round-rectangle
+        //height: 40, // Minimum height of round-rectangle
+
+        background: background,
+
+        text: textObj,
+        expandTextWidth: wrap,
+
+        space: {
+            left: 10,
+            right: 10,
+            top: 10,
+            bottom: 10
+        }
+    });
+}
+
+var onGameTimer = function () {
+    timeLeft = timeLeft - 1;
+    stopwatchText.setText(formatTime(timeLeft));
+}
+
+var formatTime =function(seconds) {
+    if(seconds > 60) {
+        // Minutes
+        var minutes = Math.floor(seconds/60);
+        return minutes;
+    }
+    else if (seconds >= 0) {
+        seconds = seconds.toString().padStart(2,'0');
+        return seconds + 's';
+    }    
+}
+
+
+
+
+
+/*
+ *
+ * top-level variables and game creation
+ * 
+ */
+
+var player;
+var dice;
+var coinText;
+var kitText;
+var recruitmentText;
+var recruitmentsText;
+var stopwatchText;
+var hourglassText;
+var coinImage;
+var kitImage;
+var recruitmentImage;
+var recruitmentsImage;
+var stopwatchImage;
+var hourglassImage;
+
+var awaitingRecruitmentOutcome = false;
+var recruitmentAttemptNo = 0 ;
+var totalNoOfRecruitments = 0;
+
+var timeLeft = GAME_TIME_LIMIT;
+
+var globalScene; //use to make scene availabe throughout code without having to pass between functions
 
 var config = {
   type: Phaser.AUTO,
   parent: 'phaser-example',
   width: 1000,
-  height: 750,
+  height: 660,
   scale: {
       mode: Phaser.Scale.FIT,
       autoCenter: Phaser.Scale.CENTER_BOTH,
@@ -1133,29 +1235,14 @@ var config = {
   }
 };
 
-
-
-//top-level variables
-var gamevars = {
-    noOfRecruitments:0
-};
-var player;
-var dice;
-var coinText;
-var kitText;
-var recruitmentText;
-var hourglassText;
-var coinImage;
-var kitImage;
-var recruitmentImage;
-var hourglassImage;
-
-var awaitingRecruitmentOutcome = false;
-var recruitmentAttemptNo = 0 ;
-
 var game = new Phaser.Game(config);
 
-var globalScene;
+
+/*
+ *
+ * Utility functions ALSO in dice.js dso need to extract
+ * 
+ */
 
 function randomIntFromInterval(min, max) { // min and max included - https://stackoverflow.com/questions/4959975/generate-random-number-between-two-numbers-in-javascript
     return Math.floor(Math.random() * (max - min + 1) + min);

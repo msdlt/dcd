@@ -23,7 +23,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -38,29 +38,78 @@
      guidetolerance="10"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:window-width="782"
-     inkscape:window-height="480"
+     inkscape:window-width="1920"
+     inkscape:window-height="1163"
      id="namedview10178"
      showgrid="false"
      inkscape:zoom="9.8333333"
      inkscape:cx="12"
      inkscape:cy="12"
-     inkscape:window-x="1006"
-     inkscape:window-y="331"
-     inkscape:window-maximized="0"
+     inkscape:window-x="1920"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
      inkscape:current-layer="svg10176" />
-  <circle
-     cx="12"
-     cy="7"
-     r="5"
-     stroke="black"
-     stroke-width="2"
-     id="circle10172" />
-  <path
-     d="M17 14H17.3517C18.8646 14 20.1408 15.1266 20.3285 16.6279L20.719 19.7519C20.8682 20.9456 19.9374 22 18.7344 22H5.26556C4.06257 22 3.1318 20.9456 3.28101 19.7519L3.67151 16.6279C3.85917 15.1266 5.13538 14 6.64835 14H7"
-     stroke="black"
-     stroke-width="2"
-     stroke-linecap="round"
-     stroke-linejoin="round"
-     id="path10174" />
+  <rect
+     style="opacity:1;fill:#000000;fill-opacity:1;stroke:none;stroke-width:29.17417336;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+     id="rect896"
+     width="80.94915"
+     height="64.576271"
+     x="31.423731"
+     y="37.423729" />
+  <g
+     id="g900-3-2"
+     transform="translate(1.7288093,0.71186437)"
+     style="stroke:#aaaaaa;stroke-opacity:1"
+     inkscape:export-filename="/home/damiony/code/dcd/resources/assets/images/people-white.png"
+     inkscape:export-xdpi="181.505"
+     inkscape:export-ydpi="181.505">
+    <circle
+       style="fill:none;stroke:#aaaaaa;stroke-width:2;stroke-opacity:1"
+       id="circle10172-5-9"
+       r="5"
+       cy="7"
+       cx="12" />
+    <path
+       style="fill:none;stroke:#aaaaaa;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1"
+       id="path10174-6-1"
+       d="m 17,14 h 0.3517 c 1.5129,0 2.7891,1.1266 2.9768,2.6279 l 0.3905,3.124 C 20.8682,20.9456 19.9374,22 18.7344,22 H 5.26556 C 4.06257,22 3.1318,20.9456 3.28101,19.7519 l 0.3905,-3.124 C 3.85917,15.1266 5.13538,14 6.64835,14 H 7"
+       inkscape:connector-curvature="0" />
+  </g>
+  <g
+     id="g900-3"
+     transform="translate(0.40677554,1.6271186)"
+     style="stroke:#cccccc;stroke-opacity:1"
+     inkscape:export-filename="/home/damiony/code/dcd/resources/assets/images/people-white.png"
+     inkscape:export-xdpi="181.505"
+     inkscape:export-ydpi="181.505">
+    <circle
+       style="fill:none;stroke:#cccccc;stroke-width:2;stroke-opacity:1"
+       id="circle10172-5"
+       r="5"
+       cy="7"
+       cx="12" />
+    <path
+       style="fill:none;stroke:#cccccc;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1"
+       id="path10174-6"
+       d="m 17,14 h 0.3517 c 1.5129,0 2.7891,1.1266 2.9768,2.6279 l 0.3905,3.124 C 20.8682,20.9456 19.9374,22 18.7344,22 H 5.26556 C 4.06257,22 3.1318,20.9456 3.28101,19.7519 l 0.3905,-3.124 C 3.85917,15.1266 5.13538,14 6.64835,14 H 7"
+       inkscape:connector-curvature="0" />
+  </g>
+  <g
+     id="g900"
+     transform="translate(-1.0169492,2.7457627)"
+     inkscape:export-filename="/home/damiony/code/dcd/resources/assets/images/people-white.png"
+     inkscape:export-xdpi="181.505"
+     inkscape:export-ydpi="181.505">
+    <circle
+       style="fill:none;stroke:#ffffff;stroke-width:2;stroke-opacity:1"
+       id="circle10172"
+       r="5"
+       cy="7"
+       cx="12" />
+    <path
+       style="fill:none;stroke:#ffffff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1"
+       id="path10174"
+       d="m 17,14 h 0.3517 c 1.5129,0 2.7891,1.1266 2.9768,2.6279 l 0.3905,3.124 C 20.8682,20.9456 19.9374,22 18.7344,22 H 5.26556 C 4.06257,22 3.1318,20.9456 3.28101,19.7519 l 0.3905,-3.124 C 3.85917,15.1266 5.13538,14 6.64835,14 H 7"
+       inkscape:connector-curvature="0" />
+  </g>
 </svg>
