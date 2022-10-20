@@ -33,7 +33,7 @@ export default class Dice extends Phaser.GameObjects.Sprite {
     this.on('animationcomplete', ()=>{
       //generate a random number
       var rolled;
-      if (this.rollCounter == 0) {
+      /*if (this.rollCounter == 0) {
         rolled = 4; //this.randomIntFromInterval(1,6); 
         this.rollCounter = 1;
     } else if (this.rollCounter == 1) {
@@ -42,9 +42,9 @@ export default class Dice extends Phaser.GameObjects.Sprite {
     } else if (this.rollCounter == 2) {
       rolled = 6; //this.randomIntFromInterval(1,6); 
       this.rollCounter = 3;
-    } else {
+    } else {*/
       rolled = this.randomIntFromInterval(1,6); 
-    }
+    //}
       //console.log(rolled);
       this.setFrame(rolled-1);
       this.callback(rolled);

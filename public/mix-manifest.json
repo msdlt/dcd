@@ -2,6 +2,7 @@
     "/js/app.js": "/js/app.js",
     "/css/app.css": "/css/app.css",
     "/assets/images/blackbuilding.png": "/assets/images/blackbuilding.png",
+    "/assets/images/buildingTiles_008.png": "/assets/images/buildingTiles_008.png",
     "/assets/images/challenge.png": "/assets/images/challenge.png",
     "/assets/images/coin-white.png": "/assets/images/coin-white.png",
     "/assets/images/die-white.png": "/assets/images/die-white.png",
@@ -10,11 +11,12 @@
     "/assets/images/hourglass-white.png": "/assets/images/hourglass-white.png",
     "/assets/images/hourglass.png": "/assets/images/hourglass.png",
     "/assets/images/house.png": "/assets/images/house.png",
+    "/assets/images/landscapeTiles_067.png": "/assets/images/landscapeTiles_067.png",
     "/assets/images/man_dark.png": "/assets/images/man_dark.png",
+    "/assets/images/meeple-sheet.png": "/assets/images/meeple-sheet.png",
     "/assets/images/people-white.png": "/assets/images/people-white.png",
     "/assets/images/person-white.png": "/assets/images/person-white.png",
+    "/assets/images/stopwatch-white.png": "/assets/images/stopwatch-white.png",
     "/assets/images/syringe-white.png": "/assets/images/syringe-white.png",
-    "/assets/images/whitebuilding.png": "/assets/images/whitebuilding.png",
-    "/assets/images/meeple-sheet.png": "/assets/images/meeple-sheet.png",
-    "/assets/images/stopwatch-white.png": "/assets/images/stopwatch-white.png"
+    "/assets/images/whitebuilding.png": "/assets/images/whitebuilding.png"
 }

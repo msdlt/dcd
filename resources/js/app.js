@@ -14,7 +14,7 @@ const INIT_NO_RECRUITMENTS = 0;
 const INIT_NO_COINS = 5;
 const INIT_NO_KITS = 5;
 
-const GAME_TIME_LIMIT = 90; //1800 seconds
+const GAME_TIME_LIMIT = 1800; //1800 seconds
 
 const DELAY_BEFORE_DIALOG_LOADS = 300; //ms
 
@@ -174,6 +174,27 @@ const TILESMAP = [
 ];
 
 
+//1 = NW
+//2 = NE
+//3 = SE
+//4 = SW
+
+const BUILDING_POSITIONS = [
+    ['2','2','2','2','0','0','2','2','2','2'],
+    ['1','0','0','1','0','0','1','0','0','1'],
+    ['1','0','0','1','2','2','4','0','0','1'],
+    ['4','2','3','0','0','0','0','2','2','4'],
+    ['0','0','3','0','0','0','0','1','0','0'],
+    ['0','0','3','0','0','0','0','1','0','0'],
+    ['1','2','4','0','0','0','0','1','2','2'],
+    ['1','0','0','2','2','2','2','0','0','1'],
+    ['1','0','0','3','0','0','1','0','0','1'],
+    ['1','2','2','3','0','0','1','2','2','4'],
+  ];
+
+
+
+
 
 /*
  *
@@ -203,15 +224,23 @@ class Demo extends Phaser.Scene {
     this.load.image('coordcentre', 
         'assets/images/blackbuilding.png'
     );
-    this.load.image('startcentre', 
+    /*this.load.image('startcentre', 
         'assets/images/whitebuilding.png'
+    );*/
+
+    //new tiles
+    this.load.image('grass', 
+        'assets/images/landscapeTiles_067.png'
+    );
+    this.load.image('study-centre-block', 
+        'assets/images/buildingTiles_008.png'
     );
 
     //image for player
-    this.load.spritesheet('man_dark', 
+    /*this.load.spritesheet('man_dark', 
         'assets/images/man_dark.png',
         { frameWidth: 32, frameHeight: 32 }
-    );
+    );*/
     this.load.spritesheet('meeple-sheet', 
         'assets/images/meeple-sheet.png',
         { frameWidth: 72, frameHeight: 72 }
@@ -257,24 +286,28 @@ class Demo extends Phaser.Scene {
     //player = new Player(board, 'man_dark');
     player = new Player(board, 'meeple-sheet');
     player.setScale(0.8);
+    player.setOrigin(0.5, 0.9);
 
     dice = new Dice(this, 750, 90, 'dice-faces', 5, onDiceRolled);
 
-    coinImage = this.add.image(750, 600, 'coin-white').setOrigin(0.5, 0.5);
-    kitImage = this.add.image(810, 600, 'syringe-white').setOrigin(0.5, 0.5);
-    recruitmentImage = this.add.image(870, 600, 'person-white').setOrigin(0.5, 0.5);
-    recruitmentsImage = this.add.image(280, 300, 'people-white').setOrigin(0.5, 0.5);
-    stopwatchImage = this.add.image(380, 300, 'stopwatch-white').setOrigin(0.5, 0.5);
-    hourglassImage = this.add.image(930, 600, 'hourglass-white').setOrigin(0.5, 0.5);
+    coinImage = this.add.image(750, 540, 'coin-white').setOrigin(0.5, 0.5);
+    kitImage = this.add.image(810, 540, 'syringe-white').setOrigin(0.5, 0.5);
+    recruitmentImage = this.add.image(870, 540, 'person-white').setOrigin(0.5, 0.5);
+    hourglassImage = this.add.image(930, 540, 'hourglass-white').setOrigin(0.5, 0.5);
     hourglassImage.visible = false;
 
-    coinText = this.add.text(750, 660, player.noOfCoins, { fontSize: '32px'}).setOrigin(0.5, 0.5);
-    kitText = this.add.text(810, 660, player.noOfKits, { fontSize: '32px'}).setOrigin(0.5, 0.5);
-    recruitmentText = this.add.text(870, 660, player.noOfRecruitments, { fontSize: '32px'}).setOrigin(0.5, 0.5);
+    recruitmentsImage = this.add.image(280, 300, 'people-white').setOrigin(0.5, 0.5);
+    stopwatchImage = this.add.image(380, 300, 'stopwatch-white').setOrigin(0.5, 0.5);
+    
+    coinText = this.add.text(750, 600, player.noOfCoins, { fontSize: '32px'}).setOrigin(0.5, 0.5);
+    kitText = this.add.text(810, 600, player.noOfKits, { fontSize: '32px'}).setOrigin(0.5, 0.5);
+    recruitmentText = this.add.text(870, 600, player.noOfRecruitments, { fontSize: '32px'}).setOrigin(0.5, 0.5);
+    hourglassText = this.add.text(930, 600, player.noOfTurnsToGetToStudyCentre, { fontSize: '32px'}).setOrigin(0.5, 0.5);
+    hourglassText.visible = false;
+
     recruitmentsText = this.add.text(280, 360, totalNoOfRecruitments, { fontSize: '32px'}).setOrigin(0.5, 0.5);
     stopwatchText = this.add.text(380, 360, formatTime(timeLeft), { fontSize: '32px'}).setOrigin(0.5, 0.5);
-    hourglassText = this.add.text(930, 660, player.noOfTurnsToGetToStudyCentre, { fontSize: '32px'}).setOrigin(0.5, 0.5);
-    hourglassText.visible = false;
+    
 
     globalScene = this;
 
@@ -308,7 +341,7 @@ class Board extends RexPlugins.Board.Board {
   createPath(tiles) {
       // tiles : 2d array
       var line, symbol, cost;
-      var challenge, house, hourglass, startcentre, coordcentre;
+      var challenge, house, hourglass, startcentrebottom, startcentrefirst, startcentresecond, coordcentre, grass;
       for (var tileY = 0, ycnt = tiles.length; tileY < ycnt; tileY++) {
           line = tiles[tileY];
           for (var tileX = 0, xcnt = line.length; tileX < xcnt; tileX++) {
@@ -324,6 +357,8 @@ class Board extends RexPlugins.Board.Board {
                   //.setStrokeStyle(1, 0xffffff, 1)
                   .setStrokeStyle(1, TILESTROKE[tileType], 1)
                   .setData('tileType', tileType);
+                  //.setData('xOffSet', xOffSet)
+                  //.setData('yOffSet', yOffSet);
                   //.setData('cost', cost);
 
                   /*1 = homes
@@ -331,9 +366,43 @@ class Board extends RexPlugins.Board.Board {
                   3 = hourglass space
                   4 = study coordination centre ... possibly several squares rather than going 'back'? Main centre is start to may need 6
                   5 = satellite study coordination centre*/
+
+                  
+                  
               
             //add tile decorators at tileZ = 1
             var tileZ = 1;
+
+            grass = new Phaser.GameObjects.Image(this.scene, 80, 80, 'grass');
+            grass.setScale(0.75);
+            this.scene.add.existing(grass);
+            this.addChess(grass, tileX, tileY, tileZ);
+
+            tileZ = 2;  //next items go on top
+
+            //default for position 1 //NW
+            var xOffSet = 0.5;
+            var yOffSet = 0.5;
+            var yOffSetStack = 0.4; //extent to which one stack offsets
+                        
+            switch(BUILDING_POSITIONS[tileY][tileX]) {
+                case '1':
+                    xOffSet = 1.2;
+                    yOffSet = 1.2;
+                    break;
+                case '2':
+                    xOffSet = -1.2;
+                    yOffSet = 1.2;
+                    break;
+                case '3':
+                    xOffSet = -1.2;
+                    yOffSet = -1.2;
+                    break;
+                case '4':
+                    xOffSet = 1.2;
+                    yOffSet = -1.2;
+                    break;
+            }
                   
             switch(tileType) {
                 case 1:
@@ -352,15 +421,33 @@ class Board extends RexPlugins.Board.Board {
                     this.addChess(hourglass, tileX, tileY, tileZ);
                     break;
                 case 4:
-                    startcentre = new Phaser.GameObjects.Image(this.scene, 80, 80, 'startcentre');
-                    this.scene.add.existing(startcentre);
-                    this.addChess(startcentre, tileX, tileY, tileZ);
-                    break; get
+                    startcentrebottom = new Phaser.GameObjects.Image(this.scene, 80, 80, 'study-centre-block');
+                    startcentrefirst = new Phaser.GameObjects.Image(this.scene, 80, 80, 'study-centre-block');
+                    startcentresecond = new Phaser.GameObjects.Image(this.scene, 80, 80, 'study-centre-block');
+                    startcentrebottom.setScale(0.5);
+                    startcentrebottom.setOrigin(xOffSet, yOffSet);
+                    this.scene.add.existing(startcentrebottom);
+                    this.addChess(startcentrebottom, tileX, tileY, tileZ);
+                    startcentrefirst.setScale(0.5);
+                    startcentrefirst.setOrigin(xOffSet, yOffSet + yOffSetStack);
+                    this.scene.add.existing(startcentrefirst);
+                    this.addChess(startcentrefirst, tileX, tileY, 3);
+                    startcentresecond.setScale(0.5);
+                    startcentresecond.setOrigin(xOffSet, yOffSet + yOffSetStack * 2);
+                    this.scene.add.existing(startcentresecond);
+                    this.addChess(startcentresecond, tileX, tileY, 4);
+                    break; 
                 case 5:
                     coordcentre = new Phaser.GameObjects.Image(this.scene, 80, 80, 'coordcentre');
                     this.scene.add.existing(coordcentre);
                     this.addChess(coordcentre, tileX, tileY, tileZ);
                     break; 
+                /*default:
+                    grass = new Phaser.GameObjects.Image(this.scene, 80, 80, 'grass');
+                    grass.setScale(0.5);
+                    this.scene.add.existing(grass);
+                    this.addChess(grass, tileX, tileY, tileZ);
+                    break;*/
 
             }
               
@@ -372,11 +459,11 @@ class Board extends RexPlugins.Board.Board {
 
 var getQuadGrid = function (scene) {
     var grid = scene.rexBoard.add.quadGrid({
-        x: 60,  //x and y of overall board
-        y: 60,
-        cellWidth: 60,
-        cellHeight: 60,
-        type: 0
+        x: 550,  //x and y of overall board
+        y: 90,
+        cellWidth: 100,
+        cellHeight: 50,
+        type: 'isometric'
     });
     return grid;
   }
@@ -402,7 +489,7 @@ class Player extends Phaser.GameObjects.Sprite {
         var scene = board.scene;
 
         //super(scene, 0,0, texture, SPRITE_REST_FRAME_NO); //add this sprite to the scene
-        super(scene, 0,0, texture, PLAYER_ID); //add this sprite to the scene
+        super(scene, 0, 0, texture, PLAYER_ID); //add this sprite to the scene
 
         //player-level scores
         this.noOfRecruitments = INIT_NO_RECRUITMENTS //2; //INIT_NO_RECRUITMENTS;
@@ -452,7 +539,7 @@ class Player extends Phaser.GameObjects.Sprite {
             frameRate: 20,
         });*/
 
-        board.addChess(this,0,0,2,true);
+        board.addChess(this,0,0,99,true);
 
         // add behaviors        
         this.monopoly = scene.rexBoard.add.monopoly(this, {
@@ -748,7 +835,7 @@ var onDiceRolled = function (numberRolled) {
         setTimeout(() => {
             globalScene.rexUI.modalPromise(
                 // Game object
-                CreateDialog(globalScene, dialogTitle, dialogPrompt, dialogButtons).setPosition(500, 300),
+                CreateDialog(dialogTitle, dialogPrompt, dialogButtons).setPosition(500, 300),
                 // Config
                 {
                     manualClose: true,
@@ -828,7 +915,7 @@ var recruitAttempt = function () {
 
 var drawChallengeCard = function () {
     //generate random number
-    var cardDrawn = 7; //randomIntFromInterval(0,CHALLENGE_TITLES.length)
+    var cardDrawn = randomIntFromInterval(0,CHALLENGE_TITLES.length);
 
     var dialogTitle = CHALLENGE_TITLES[cardDrawn];
     var dialogPrompt = CHALLENGE_PROMPTS[cardDrawn];
@@ -1215,7 +1302,7 @@ var globalScene; //use to make scene availabe throughout code without having to 
 var config = {
   type: Phaser.AUTO,
   parent: 'phaser-example',
-  width: 1000,
+  width: 1100,
   height: 660,
   scale: {
       mode: Phaser.Scale.FIT,
