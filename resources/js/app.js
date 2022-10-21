@@ -181,15 +181,15 @@ const TILESMAP = [
 
 const BUILDING_POSITIONS = [
     ['2','2','2','2','0','0','2','2','2','2'],
-    ['1','0','0','1','0','0','1','0','0','1'],
-    ['1','0','0','1','2','2','4','0','0','1'],
-    ['4','2','3','0','0','0','0','2','2','4'],
+    ['1','0','0','1','0','0','1','0','0','3'],
+    ['1','0','0','1','4','4','4','0','0','3'],
+    ['4','2','3','0','0','0','0','2','4','3'],
     ['0','0','3','0','0','0','0','1','0','0'],
     ['0','0','3','0','0','0','0','1','0','0'],
     ['1','2','4','0','0','0','0','1','2','2'],
-    ['1','0','0','2','2','2','2','0','0','1'],
-    ['1','0','0','3','0','0','1','0','0','1'],
-    ['1','2','2','3','0','0','1','2','2','4'],
+    ['1','0','0','2','2','2','2','0','0','3'],
+    ['1','0','0','3','0','0','1','0','0','3'],
+    ['1','4','4','3','0','0','1','4','4','4'],
   ];
 
 
@@ -212,18 +212,18 @@ class Demo extends Phaser.Scene {
   preload() { 
     
     //images for board squares
-    this.load.image('challenge', 
+    /*this.load.image('challenge', 
         'assets/images/exclaim.png'
-    );
-    this.load.image('hourglass', 
+    );*/
+    /*this.load.image('hourglass', 
         'assets/images/hourglass.png'
-    );
-    this.load.image('house', 
+    );*/
+    /*this.load.image('house', 
         'assets/images/house.png'
-    );
-    this.load.image('coordcentre', 
+    );*/
+    /*this.load.image('coordcentre', 
         'assets/images/blackbuilding.png'
-    );
+    );*/
     /*this.load.image('startcentre', 
         'assets/images/whitebuilding.png'
     );*/
@@ -234,6 +234,15 @@ class Demo extends Phaser.Scene {
     );
     this.load.image('study-centre-block', 
         'assets/images/buildingTiles_008.png'
+    );
+    this.load.image('house', 
+        'assets/images/tower_35.png'
+    );
+    this.load.image('hourglass', 
+        'assets/images/landscapeTilesHourglass.png'
+    );
+    this.load.image('challenge', 
+        'assets/images/landscapeTilesChallenge.png'
     );
 
     //image for player
@@ -288,25 +297,25 @@ class Demo extends Phaser.Scene {
     player.setScale(0.8);
     player.setOrigin(0.5, 0.9);
 
-    dice = new Dice(this, 750, 90, 'dice-faces', 5, onDiceRolled);
+    dice = new Dice(this, 970, 60, 'dice-faces', 5, onDiceRolled);
 
-    coinImage = this.add.image(750, 540, 'coin-white').setOrigin(0.5, 0.5);
-    kitImage = this.add.image(810, 540, 'syringe-white').setOrigin(0.5, 0.5);
-    recruitmentImage = this.add.image(870, 540, 'person-white').setOrigin(0.5, 0.5);
-    hourglassImage = this.add.image(930, 540, 'hourglass-white').setOrigin(0.5, 0.5);
+    coinImage = this.add.image(850, 540, 'coin-white').setOrigin(0.5, 0.5);
+    kitImage = this.add.image(910, 540, 'syringe-white').setOrigin(0.5, 0.5);
+    recruitmentImage = this.add.image(970, 540, 'person-white').setOrigin(0.5, 0.5);
+    hourglassImage = this.add.image(1030, 540, 'hourglass-white').setOrigin(0.5, 0.5);
     hourglassImage.visible = false;
 
-    recruitmentsImage = this.add.image(280, 300, 'people-white').setOrigin(0.5, 0.5);
-    stopwatchImage = this.add.image(380, 300, 'stopwatch-white').setOrigin(0.5, 0.5);
+    recruitmentsImage = this.add.image(60, 60, 'people-white').setOrigin(0.5, 0.5);
+    stopwatchImage = this.add.image(160, 60, 'stopwatch-white').setOrigin(0.5, 0.5);
     
-    coinText = this.add.text(750, 600, player.noOfCoins, { fontSize: '32px'}).setOrigin(0.5, 0.5);
-    kitText = this.add.text(810, 600, player.noOfKits, { fontSize: '32px'}).setOrigin(0.5, 0.5);
-    recruitmentText = this.add.text(870, 600, player.noOfRecruitments, { fontSize: '32px'}).setOrigin(0.5, 0.5);
-    hourglassText = this.add.text(930, 600, player.noOfTurnsToGetToStudyCentre, { fontSize: '32px'}).setOrigin(0.5, 0.5);
+    coinText = this.add.text(850, 600, player.noOfCoins, { fontSize: '32px'}).setOrigin(0.5, 0.5);
+    kitText = this.add.text(910, 600, player.noOfKits, { fontSize: '32px'}).setOrigin(0.5, 0.5);
+    recruitmentText = this.add.text(970, 600, player.noOfRecruitments, { fontSize: '32px'}).setOrigin(0.5, 0.5);
+    hourglassText = this.add.text(1030, 600, player.noOfTurnsToGetToStudyCentre, { fontSize: '32px'}).setOrigin(0.5, 0.5);
     hourglassText.visible = false;
 
-    recruitmentsText = this.add.text(280, 360, totalNoOfRecruitments, { fontSize: '32px'}).setOrigin(0.5, 0.5);
-    stopwatchText = this.add.text(380, 360, formatTime(timeLeft), { fontSize: '32px'}).setOrigin(0.5, 0.5);
+    recruitmentsText = this.add.text(60, 110, totalNoOfRecruitments, { fontSize: '32px'}).setOrigin(0.5, 0.5);
+    stopwatchText = this.add.text(160, 110, formatTime(timeLeft), { fontSize: '32px'}).setOrigin(0.5, 0.5);
     
 
     globalScene = this;
@@ -388,35 +397,40 @@ class Board extends RexPlugins.Board.Board {
             switch(BUILDING_POSITIONS[tileY][tileX]) {
                 case '1':
                     xOffSet = 1.2;
-                    yOffSet = 1.2;
+                    yOffSet = 1.4;
                     break;
                 case '2':
-                    xOffSet = -1.2;
-                    yOffSet = 1.2;
+                    xOffSet = -0.2;
+                    yOffSet = 1.4;
                     break;
                 case '3':
-                    xOffSet = -1.2;
-                    yOffSet = -1.2;
+                    xOffSet = -0.15;
+                    yOffSet = 0.6;
                     break;
                 case '4':
-                    xOffSet = 1.2;
-                    yOffSet = -1.2;
+                    xOffSet = 1.15;
+                    yOffSet = 0.6;
                     break;
             }
                   
             switch(tileType) {
                 case 1:
                     house = new Phaser.GameObjects.Image(this.scene, 80, 80, 'house');
+                    house.setScale(0.5);
+                    house.setOrigin(xOffSet, yOffSet);
                     this.scene.add.existing(house);
                     this.addChess(house, tileX, tileY, tileZ);
                     break; 
                 case 2:
                     challenge = new Phaser.GameObjects.Image(this.scene, 80, 80, 'challenge');
+                    challenge.setScale(0.75);
                     this.scene.add.existing(challenge);
                     this.addChess(challenge, tileX, tileY, tileZ);
                     break; 
                 case 3:
                     hourglass = new Phaser.GameObjects.Image(this.scene, 80, 80, 'hourglass');
+                    hourglass.setScale(0.75);
+                    //hourglass.setOrigin(xOffSet, yOffSet);
                     this.scene.add.existing(hourglass);
                     this.addChess(hourglass, tileX, tileY, tileZ);
                     break;
@@ -438,9 +452,16 @@ class Board extends RexPlugins.Board.Board {
                     this.addChess(startcentresecond, tileX, tileY, 4);
                     break; 
                 case 5:
-                    coordcentre = new Phaser.GameObjects.Image(this.scene, 80, 80, 'coordcentre');
-                    this.scene.add.existing(coordcentre);
-                    this.addChess(coordcentre, tileX, tileY, tileZ);
+                    startcentrebottom = new Phaser.GameObjects.Image(this.scene, 80, 80, 'study-centre-block');
+                    startcentrefirst = new Phaser.GameObjects.Image(this.scene, 80, 80, 'study-centre-block');
+                    startcentrebottom.setScale(0.5);
+                    startcentrebottom.setOrigin(xOffSet, yOffSet);
+                    this.scene.add.existing(startcentrebottom);
+                    this.addChess(startcentrebottom, tileX, tileY, tileZ);
+                    startcentrefirst.setScale(0.5);
+                    startcentrefirst.setOrigin(xOffSet, yOffSet + yOffSetStack);
+                    this.scene.add.existing(startcentrefirst);
+                    this.addChess(startcentrefirst, tileX, tileY, 3);
                     break; 
                 /*default:
                     grass = new Phaser.GameObjects.Image(this.scene, 80, 80, 'grass');
@@ -460,7 +481,7 @@ class Board extends RexPlugins.Board.Board {
 var getQuadGrid = function (scene) {
     var grid = scene.rexBoard.add.quadGrid({
         x: 550,  //x and y of overall board
-        y: 90,
+        y: 110,
         cellWidth: 100,
         cellHeight: 50,
         type: 'isometric'

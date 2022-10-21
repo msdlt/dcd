@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg
-   xmlns:dc="http://purl.org/dc/elements/1.1/"
-   xmlns:cc="http://creativecommons.org/ns#"
-   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-   xmlns:svg="http://www.w3.org/2000/svg"
-   xmlns="http://www.w3.org/2000/svg"
-   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    viewBox="0 0 384 512"
    version="1.1"
    id="svg865"
    sodipodi:docname="hourglass.svg"
-   inkscape:version="0.92.5 (2060ec1f9f, 2020-04-08)">
+   inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
   <metadata
      id="metadata871">
     <rdf:RDF>
@@ -20,7 +20,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -35,19 +35,40 @@
      guidetolerance="10"
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:window-width="1848"
+     inkscape:window-width="1846"
      inkscape:window-height="1136"
      id="namedview867"
      showgrid="false"
-     inkscape:zoom="0.33076577"
-     inkscape:cx="-652.8906"
-     inkscape:cy="-200.15887"
-     inkscape:window-x="72"
-     inkscape:window-y="27"
+     inkscape:zoom="0.46777344"
+     inkscape:cx="-753.56994"
+     inkscape:cy="251.18998"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
      inkscape:window-maximized="1"
-     inkscape:current-layer="svg865" />
+     inkscape:current-layer="svg865"
+     inkscape:pagecheckerboard="0" />
   <!--! Font Awesome Free 6.1.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. -->
   <path
-     d="M0 32C0 14.33 14.33 0 32 0H352C369.7 0 384 14.33 384 32C384 49.67 369.7 64 352 64V74.98C352 117.4 335.1 158.1 305.1 188.1L237.3 256L305.1 323.9C335.1 353.9 352 394.6 352 437V448C369.7 448 384 462.3 384 480C384 497.7 369.7 512 352 512H32C14.33 512 0 497.7 0 480C0 462.3 14.33 448 32 448V437C32 394.6 48.86 353.9 78.86 323.9L146.7 256L78.86 188.1C48.86 158.1 32 117.4 32 74.98V64C14.33 64 0 49.67 0 32zM96 64V74.98C96 100.4 106.1 124.9 124.1 142.9L192 210.7L259.9 142.9C277.9 124.9 288 100.4 288 74.98V64H96zM96 448H288V437C288 411.6 277.9 387.1 259.9 369.1L192 301.3L124.1 369.1C106.1 387.1 96 411.6 96 437V448z"
-     id="path863" />
+     d="m 156.4142,254.62956 c -1.51172,-0.75599 -1.51151,-1.98206 4.8e-4,-2.73792 l 27.38143,-13.68843 c 1.51454,-0.75716 3.96412,-0.75576 5.47585,2.4e-4 1.51171,0.75597 1.51407,1.98077 -4.9e-4,2.73791 l 0.93936,0.46975 c 3.62915,1.81488 5.66508,4.2791 5.66464,6.8459 l 0.008,5.80524 11.61049,0.004 c 5.13359,2.4e-4 10.06167,1.01857 13.68911,2.8326 l 0.94107,0.47063 c 1.51454,-0.75715 3.96155,-0.75705 5.47584,2.4e-4 1.51429,0.75726 1.51408,1.98077 -4.9e-4,2.73791 l -27.38139,13.68841 c -1.51197,0.75586 -3.96156,0.75705 -5.47584,-2.4e-4 -1.51428,-0.75727 -1.51151,-1.98205 4.8e-4,-2.73792 l -0.94108,-0.47062 c -3.62744,-1.81401 -5.66678,-4.27652 -5.66634,-6.84331 l -0.003,-5.80696 -11.61391,-0.003 c -5.13359,-2.4e-4 -10.05825,-1.02028 -13.6874,-2.83516 l -0.93937,-0.46978 c -1.51197,0.75587 -3.96412,0.75577 -5.47583,-2.4e-4 z m 10.95213,-2.73746 0.93936,0.46976 c 2.17476,1.08755 5.13502,1.70372 8.21519,1.70385 l 11.61048,-0.003 0.01,-5.80524 c 2.4e-4,-1.54007 -1.23156,-3.02032 -3.40632,-4.10788 l -0.93935,-0.46976 z m 32.85227,16.42887 16.42887,-8.21307 -0.94108,-0.47061 c -2.17304,-1.0867 -5.13331,-1.70286 -8.21347,-1.70298 l -11.61048,0.003 -0.01,5.80524 c -2.4e-4,1.54008 1.23156,3.02032 3.4046,4.10702 z"
+     id="path863"
+     style="fill:#808080;stroke-width:0.08556" />
+  <rect
+     style="fill:#666666;stroke:#aaaaaa;stroke-width:29.1742;stroke-linejoin:round"
+     id="rect263"
+     width="1500.6962"
+     height="1220.0382"
+     x="-2005.3135"
+     y="-63.241032" />
+  <text
+     xml:space="preserve"
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:69.511px;line-height:1.25;font-family:KacstArt;-inkscape-font-specification:KacstArt;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.362039"
+     x="-1017.9849"
+     y="-448.35852"
+     id="text2005"
+     transform="matrix(1,-0.5,1,0.5,0,0)"><tspan
+       sodipodi:role="line"
+       id="tspan2003"
+       x="-1017.9849"
+       y="-448.35852"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Dyuthi;-inkscape-font-specification:Dyuthi;fill:#ffffff;stroke-width:0.362039">!</tspan></text>
 </svg>
