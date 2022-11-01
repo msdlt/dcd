@@ -14,6 +14,8 @@ const INIT_NO_RECRUITMENTS = 0;
 const INIT_NO_COINS = 5;
 const INIT_NO_KITS = 5;
 
+const PLAYER_Z = -5;//6;
+
 const GAME_TIME_LIMIT = 1800; //1800 seconds
 
 const DELAY_BEFORE_DIALOG_LOADS = 300; //ms
@@ -293,7 +295,7 @@ class Demo extends Phaser.Scene {
     var dialog = this.rexUI.add.dialog(config);
    
     //player = new Player(board, 'man_dark');
-    player = new Player(board, 'meeple-sheet');
+    player = new Player(board, 'meeple-sheet', PLAYER_Z);
     player.setScale(0.8);
     player.setOrigin(0.5, 0.9);
 
@@ -305,8 +307,8 @@ class Demo extends Phaser.Scene {
     hourglassImage = this.add.image(1030, 540, 'hourglass-white').setOrigin(0.5, 0.5);
     hourglassImage.visible = false;
 
-    recruitmentsImage = this.add.image(60, 60, 'people-white').setOrigin(0.5, 0.5);
-    stopwatchImage = this.add.image(160, 60, 'stopwatch-white').setOrigin(0.5, 0.5);
+    //recruitmentsImage = this.add.image(60, 60, 'people-white').setOrigin(0.5, 0.5);
+    stopwatchImage = this.add.image(60, 60, 'stopwatch-white').setOrigin(0.5, 0.5);
     
     coinText = this.add.text(850, 600, player.noOfCoins, { fontSize: '32px'}).setOrigin(0.5, 0.5);
     kitText = this.add.text(910, 600, player.noOfKits, { fontSize: '32px'}).setOrigin(0.5, 0.5);
@@ -314,8 +316,8 @@ class Demo extends Phaser.Scene {
     hourglassText = this.add.text(1030, 600, player.noOfTurnsToGetToStudyCentre, { fontSize: '32px'}).setOrigin(0.5, 0.5);
     hourglassText.visible = false;
 
-    recruitmentsText = this.add.text(60, 110, totalNoOfRecruitments, { fontSize: '32px'}).setOrigin(0.5, 0.5);
-    stopwatchText = this.add.text(160, 110, formatTime(timeLeft), { fontSize: '32px'}).setOrigin(0.5, 0.5);
+    //recruitmentsText = this.add.text(60, 110, totalNoOfRecruitments, { fontSize: '32px'}).setOrigin(0.5, 0.5);
+    stopwatchText = this.add.text(60, 110, formatTime(timeLeft), { fontSize: '32px'}).setOrigin(0.5, 0.5);
     
 
     globalScene = this;
@@ -351,6 +353,7 @@ class Board extends RexPlugins.Board.Board {
       // tiles : 2d array
       var line, symbol, cost;
       var challenge, house, hourglass, startcentrebottom, startcentrefirst, startcentresecond, coordcentre, grass;
+      var tileDepth = -10;
       for (var tileY = 0, ycnt = tiles.length; tileY < ycnt; tileY++) {
           line = tiles[tileY];
           for (var tileX = 0, xcnt = line.length; tileX < xcnt; tileX++) {
@@ -365,6 +368,7 @@ class Board extends RexPlugins.Board.Board {
               this.scene.rexBoard.add.shape(this, tileX, tileY, 0, TILEFILL[tileType]) //cost for all tiles = 1
                   //.setStrokeStyle(1, 0xffffff, 1)
                   .setStrokeStyle(1, TILESTROKE[tileType], 1)
+                  .setDepth(tileDepth-1)
                   .setData('tileType', tileType);
                   //.setData('xOffSet', xOffSet)
                   //.setData('yOffSet', yOffSet);
@@ -386,30 +390,43 @@ class Board extends RexPlugins.Board.Board {
             grass.setScale(0.75);
             this.scene.add.existing(grass);
             this.addChess(grass, tileX, tileY, tileZ);
+            grass.setDepth(-10);
 
-            tileZ = 2;  //next items go on top
+            tileZ = 2;  //next items - tile modifiers - go on top
+            var buildingZ = 3;  //buildings start even higher
+            var depth = tileDepth;
+            //NOTE: playerZ = 6
 
             //default for position 1 //NW
             var xOffSet = 0.5;
             var yOffSet = 0.5;
             var yOffSetStack = 0.4; //extent to which one stack offsets
                         
+            //person
             switch(BUILDING_POSITIONS[tileY][tileX]) {
-                case '1':
+                case '1': //NW
                     xOffSet = 1.2;
                     yOffSet = 1.4;
+                    buildingZ = 3;  //order of painting
+                    depth = tileDepth; //to allow 
                     break;
-                case '2':
+                case '2': //NE
                     xOffSet = -0.2;
                     yOffSet = 1.4;
+                    buildingZ = 3;
+                    depth = tileDepth;
                     break;
-                case '3':
+                case '3': //SE
                     xOffSet = -0.15;
                     yOffSet = 0.6;
+                    buildingZ = 7;
+                    depth = -4;
                     break;
-                case '4':
+                case '4': //SW
                     xOffSet = 1.15;
                     yOffSet = 0.6;
+                    buildingZ = 7;
+                    depth = -4;
                     break;
             }
                   
@@ -419,13 +436,15 @@ class Board extends RexPlugins.Board.Board {
                     house.setScale(0.5);
                     house.setOrigin(xOffSet, yOffSet);
                     this.scene.add.existing(house);
-                    this.addChess(house, tileX, tileY, tileZ);
+                    this.addChess(house, tileX, tileY, buildingZ);
+                    house.setDepth(depth);
                     break; 
                 case 2:
                     challenge = new Phaser.GameObjects.Image(this.scene, 80, 80, 'challenge');
                     challenge.setScale(0.75);
                     this.scene.add.existing(challenge);
                     this.addChess(challenge, tileX, tileY, tileZ);
+                    challenge.setDepth(tileDepth);
                     break; 
                 case 3:
                     hourglass = new Phaser.GameObjects.Image(this.scene, 80, 80, 'hourglass');
@@ -433,6 +452,7 @@ class Board extends RexPlugins.Board.Board {
                     //hourglass.setOrigin(xOffSet, yOffSet);
                     this.scene.add.existing(hourglass);
                     this.addChess(hourglass, tileX, tileY, tileZ);
+                    hourglass.setDepth(tileDepth);
                     break;
                 case 4:
                     startcentrebottom = new Phaser.GameObjects.Image(this.scene, 80, 80, 'study-centre-block');
@@ -441,15 +461,18 @@ class Board extends RexPlugins.Board.Board {
                     startcentrebottom.setScale(0.5);
                     startcentrebottom.setOrigin(xOffSet, yOffSet);
                     this.scene.add.existing(startcentrebottom);
-                    this.addChess(startcentrebottom, tileX, tileY, tileZ);
+                    this.addChess(startcentrebottom, tileX, tileY, buildingZ);
+                    startcentrebottom.setDepth(depth);
                     startcentrefirst.setScale(0.5);
                     startcentrefirst.setOrigin(xOffSet, yOffSet + yOffSetStack);
                     this.scene.add.existing(startcentrefirst);
-                    this.addChess(startcentrefirst, tileX, tileY, 3);
+                    this.addChess(startcentrefirst, tileX, tileY, buildingZ + 1);
+                    startcentrefirst.setDepth(depth + 1);
                     startcentresecond.setScale(0.5);
                     startcentresecond.setOrigin(xOffSet, yOffSet + yOffSetStack * 2);
                     this.scene.add.existing(startcentresecond);
-                    this.addChess(startcentresecond, tileX, tileY, 4);
+                    this.addChess(startcentresecond, tileX, tileY, buildingZ + 2);
+                    startcentresecond.setDepth(depth + 2);
                     break; 
                 case 5:
                     startcentrebottom = new Phaser.GameObjects.Image(this.scene, 80, 80, 'study-centre-block');
@@ -457,11 +480,13 @@ class Board extends RexPlugins.Board.Board {
                     startcentrebottom.setScale(0.5);
                     startcentrebottom.setOrigin(xOffSet, yOffSet);
                     this.scene.add.existing(startcentrebottom);
-                    this.addChess(startcentrebottom, tileX, tileY, tileZ);
+                    this.addChess(startcentrebottom, tileX, tileY, buildingZ);
+                    startcentrebottom.setDepth(depth);
                     startcentrefirst.setScale(0.5);
                     startcentrefirst.setOrigin(xOffSet, yOffSet + yOffSetStack);
                     this.scene.add.existing(startcentrefirst);
-                    this.addChess(startcentrefirst, tileX, tileY, 3);
+                    this.addChess(startcentrefirst, tileX, tileY, buildingZ + 1);
+                    startcentrefirst.setDepth(depth + 1);
                     break; 
                 /*default:
                     grass = new Phaser.GameObjects.Image(this.scene, 80, 80, 'grass');
@@ -506,7 +531,7 @@ var createTileMap = function (tilesMap, out) {
  */
 
 class Player extends Phaser.GameObjects.Sprite {
-    constructor(board, texture) {
+    constructor(board, texture, playerZ) {
         var scene = board.scene;
 
         //super(scene, 0,0, texture, SPRITE_REST_FRAME_NO); //add this sprite to the scene
@@ -560,7 +585,8 @@ class Player extends Phaser.GameObjects.Sprite {
             frameRate: 20,
         });*/
 
-        board.addChess(this,0,0,99,true);
+        board.addChess(this,0,0,playerZ,true);
+        this.setDepth(playerZ);
 
         // add behaviors        
         this.monopoly = scene.rexBoard.add.monopoly(this, {
@@ -936,7 +962,7 @@ var recruitAttempt = function () {
 
 var drawChallengeCard = function () {
     //generate random number
-    var cardDrawn = randomIntFromInterval(0,CHALLENGE_TITLES.length);
+    var cardDrawn = randomIntFromInterval(0,CHALLENGE_TITLES.length-1);
 
     var dialogTitle = CHALLENGE_TITLES[cardDrawn];
     var dialogPrompt = CHALLENGE_PROMPTS[cardDrawn];
@@ -1139,6 +1165,7 @@ var updateInventory = function (updateDetails) {
         player.noOfRecruitments = player.noOfRecruitments + updateDetails.recruitment;
         player.samplesCollectedSinceLastStudyCentre = player.samplesCollectedSinceLastStudyCentre + updateDetails.recruitment; //used to calculate how many sampkles to lose in timed challenge
         if(player.noOfRecruitments < 0) player.noOfRecruitments = 0;
+        //i
         highlightTextObject(recruitmentText);
         recruitmentText.text = player.noOfRecruitments;
     }
@@ -1234,6 +1261,8 @@ var CreateDialog = function (title, prompt, dialogButtons) {
         .on('button.out', function (button, groupName, index, pointer, event) {
             button.getElement('background').setStrokeStyle();
         });
+
+    dialog.setDepth(99);
 
     return dialog;
 }
